@@ -1,13 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Radio, Users, Settings } from "lucide-react";
+import { Radio, Users } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
 import { ChatsTab } from "@/components/tabs/ChatsTab";
 import { PlaceholderTab } from "@/components/tabs/PlaceholderTab";
+import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   component: Index,
 });
 
@@ -19,13 +22,38 @@ const tabTitles: Record<TabId, string> = {
 };
 
 function Index() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("chats");
+  const [checking, setChecking] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 1600);
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate({ to: "/auth", replace: true });
+      } else {
+        setChecking(false);
+      }
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") navigate({ to: "/auth", replace: true });
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (checking) return;
+    const t = setTimeout(() => setShowSplash(false), 900);
     return () => clearTimeout(t);
-  }, []);
+  }, [checking]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Splash />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -48,13 +76,7 @@ function Index() {
               description="Your Swifty contacts will show up here once you connect your address book."
             />
           )}
-          {tab === "settings" && (
-            <PlaceholderTab
-              Icon={Settings}
-              title="Settings"
-              description="Personalize notifications, privacy, and appearance. Coming soon."
-            />
-          )}
+          {tab === "settings" && <SettingsTab />}
         </main>
       </div>
       <BottomNav active={tab} onChange={setTab} />
