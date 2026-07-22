@@ -31,7 +31,7 @@ export function SwiftyLogo({ size = 32, showWordmark = false, className = "" }: 
             backgroundClip: "text",
           }}
         >
-          Swifty
+          Swift
         </span>
       )}
     </div>
