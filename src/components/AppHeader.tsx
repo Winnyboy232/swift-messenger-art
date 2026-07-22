@@ -19,7 +19,7 @@ export function AppHeader() {
               backgroundClip: "text",
             }}
           >
-            Swifty
+            Swift
           </h1>
         </div>
         <div className="flex items-center gap-1.5">
