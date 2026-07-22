@@ -11,7 +11,7 @@ export function SwiftyLogo({ size = 32, showWordmark = false, className = "" }: 
     <div className={`flex items-center gap-2 ${className}`}>
       <img
         src={logo}
-        alt="Swifty logo"
+        alt="Swift logo"
         width={size}
         height={size}
         loading="lazy"
