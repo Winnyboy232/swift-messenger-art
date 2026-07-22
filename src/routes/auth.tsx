@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Phone, Loader2, ArrowLeft } from "lucide-react";
+import { ArrowRight, Phone, Loader2, ArrowLeft, Shield, Zap, Users } from "lucide-react";
 import { toast } from "sonner";
 import { SwiftyLogo } from "@/components/SwiftyLogo";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,10 +153,15 @@ function AuthPage() {
 }
 
 function WelcomeView({ onProceed }: { onProceed: () => void }) {
+  const features = [
+    { Icon: Shield, title: "Secure", desc: "Your privacy is protected" },
+    { Icon: Zap, title: "Fast", desc: "Built for speed and reliability" },
+    { Icon: Users, title: "Connected", desc: "Bringing people closer together" },
+  ];
   return (
     <div className="flex flex-1 flex-col items-center justify-between py-6">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
-        <SwiftyLogo size={140} />
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+        <SwiftyLogo size={132} />
         <div className="space-y-3">
           <h1
             className="text-5xl font-extrabold tracking-tight leading-none"
@@ -169,15 +174,35 @@ function WelcomeView({ onProceed }: { onProceed: () => void }) {
           >
             Swifty
           </h1>
-          <p className="text-base font-medium text-muted-foreground">
-            Swift. Secure. Seamless.
+          <p className="text-base font-semibold text-foreground">
+            Fast. Secure. Connected.
+          </p>
+          <p className="mx-auto max-w-xs text-sm leading-relaxed text-muted-foreground">
+            Connect with friends, share moments, and discover what's happening around the world.
           </p>
         </div>
       </div>
-      <div className="w-full space-y-3">
+      <div className="w-full space-y-6">
         <PrimaryButton onClick={onProceed}>
-          Proceed <ArrowRight size={18} />
+          Get Started <ArrowRight size={18} />
         </PrimaryButton>
+        <div className="grid grid-cols-3 gap-2">
+          {features.map(({ Icon, title, desc }) => (
+            <div
+              key={title}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card/60 px-2 py-3 text-center"
+            >
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-xl"
+                style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
+              >
+                <Icon size={16} className="text-primary-foreground" strokeWidth={2.4} />
+              </span>
+              <span className="text-[12px] font-semibold text-foreground">{title}</span>
+              <span className="text-[10px] leading-tight text-muted-foreground">{desc}</span>
+            </div>
+          ))}
+        </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
           By continuing you agree to Swifty's Terms &amp; Privacy Policy.
         </p>
