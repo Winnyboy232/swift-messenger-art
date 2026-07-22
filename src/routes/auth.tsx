@@ -226,7 +226,7 @@ function MethodsView({
         <div className="flex flex-col items-center gap-4 text-center">
           <SwiftyLogo size={72} />
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Sign in to Swifty</h2>
+            <h2 className="text-2xl font-bold text-foreground">Sign in to Swift</h2>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Choose how you'd like to continue.
             </p>
