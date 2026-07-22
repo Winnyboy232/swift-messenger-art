@@ -172,7 +172,7 @@ function WelcomeView({ onProceed }: { onProceed: () => void }) {
               backgroundClip: "text",
             }}
           >
-            Swifty
+            Swift
           </h1>
           <p className="text-base font-semibold text-foreground">
             Fast. Secure. Connected.
