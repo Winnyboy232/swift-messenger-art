@@ -22,7 +22,7 @@ export function Splash() {
               backgroundClip: "text",
             }}
           >
-            Swifty
+            Swift
           </span>
           <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
             Messaging, refined
