@@ -37,7 +37,7 @@ export function SettingsTab() {
           <p className="truncate text-sm font-semibold text-foreground">
             {email || phone || "Signed in"}
           </p>
-          <p className="text-xs text-muted-foreground">Your Swifty account</p>
+          <p className="text-xs text-muted-foreground">Your Swift account</p>
         </div>
       </div>
 

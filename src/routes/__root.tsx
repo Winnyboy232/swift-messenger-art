@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Swifty — Minimalist Messaging" },
-      { name: "description", content: "Swifty is a minimalist, ultra-modern mobile messaging app. Fast, private, beautifully dark." },
+      { title: "Swift — Minimalist Messaging" },
+      { name: "description", content: "Swift is a minimalist, ultra-modern mobile messaging app. Fast, private, beautifully dark." },
       { name: "theme-color", content: "#141826" },
-      { property: "og:title", content: "Swifty — Minimalist Messaging" },
+      { property: "og:title", content: "Swift — Minimalist Messaging" },
       { property: "og:description", content: "A minimalist, ultra-modern mobile messaging app." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

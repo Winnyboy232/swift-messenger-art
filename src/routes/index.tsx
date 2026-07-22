@@ -66,7 +66,7 @@ function Index() {
             <PlaceholderTab
               Icon={Users}
               title="Contacts"
-              description="Your Swifty contacts will show up here once you connect your address book."
+              description="Your Swift contacts will show up here once you connect your address book."
             />
           )}
           {tab === "settings" && <SettingsTab />}

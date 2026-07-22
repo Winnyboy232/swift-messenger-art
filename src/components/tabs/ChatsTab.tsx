@@ -1,12 +1,13 @@
 import { Search } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
-const placeholderChats = [
-  { id: 1, name: "Ava Chen", preview: "See you tomorrow ✨", time: "09:42", unread: 2, initials: "AC" },
-  { id: 2, name: "Marcus Rivera", preview: "Sent a photo", time: "08:15", unread: 0, initials: "MR" },
-  { id: 3, name: "Design Team", preview: "Nadia: pushed the update", time: "Yesterday", unread: 5, initials: "DT" },
-  { id: 4, name: "Priya Patel", preview: "Thanks!", time: "Yesterday", unread: 0, initials: "PP" },
-  { id: 5, name: "Weekend Trip", preview: "Leo: what time again?", time: "Mon", unread: 0, initials: "WT" },
-  { id: 6, name: "Jonas Meyer", preview: "🙌", time: "Mon", unread: 0, initials: "JM" },
+export const placeholderChats = [
+  { id: "ava-chen", name: "Ava Chen", preview: "See you tomorrow ✨", time: "09:42", unread: 2, initials: "AC" },
+  { id: "marcus-rivera", name: "Marcus Rivera", preview: "Sent a photo", time: "08:15", unread: 0, initials: "MR" },
+  { id: "design-team", name: "Design Team", preview: "Nadia: pushed the update", time: "Yesterday", unread: 5, initials: "DT" },
+  { id: "priya-patel", name: "Priya Patel", preview: "Thanks!", time: "Yesterday", unread: 0, initials: "PP" },
+  { id: "weekend-trip", name: "Weekend Trip", preview: "Leo: what time again?", time: "Mon", unread: 0, initials: "WT" },
+  { id: "jonas-meyer", name: "Jonas Meyer", preview: "🙌", time: "Mon", unread: 0, initials: "JM" },
 ];
 
 export function ChatsTab() {
@@ -26,8 +27,10 @@ export function ChatsTab() {
       <ul className="divide-y divide-border">
         {placeholderChats.map((chat) => (
           <li key={chat.id}>
-            <button
-              type="button"
+            <Link
+              to="/chat/$chatId"
+              params={{ chatId: chat.id }}
+              search={{ name: chat.name, initials: chat.initials }}
               className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-card/60 active:bg-card"
             >
               <span
@@ -53,7 +56,7 @@ export function ChatsTab() {
                   )}
                 </div>
               </div>
-            </button>
+            </Link>
           </li>
         ))}
       </ul>
