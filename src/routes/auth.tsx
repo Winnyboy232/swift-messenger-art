@@ -204,7 +204,7 @@ function WelcomeView({ onProceed }: { onProceed: () => void }) {
           ))}
         </div>
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          By continuing you agree to Swifty's Terms &amp; Privacy Policy.
+          By continuing you agree to Swift's Terms &amp; Privacy Policy.
         </p>
       </div>
     </div>
