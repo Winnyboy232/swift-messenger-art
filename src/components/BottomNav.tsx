@@ -1,10 +1,10 @@
 import { MessageCircle, Radio, Users, Settings } from "lucide-react";
 
-export type TabId = "chats" | "status" | "contacts" | "settings";
+export type TabId = "chats" | "updates" | "contacts" | "settings";
 
 const tabs: { id: TabId; label: string; Icon: typeof MessageCircle }[] = [
   { id: "chats", label: "Chats", Icon: MessageCircle },
-  { id: "status", label: "Status", Icon: Radio },
+  { id: "updates", label: "Updates", Icon: Radio },
   { id: "contacts", label: "Contacts", Icon: Users },
   { id: "settings", label: "Settings", Icon: Settings },
 ];
@@ -28,26 +28,22 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
               <button
                 type="button"
                 onClick={() => onChange(id)}
-                className="group flex w-full flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-colors"
+                className="group relative flex w-full flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-colors"
                 aria-current={isActive ? "page" : undefined}
               >
-                <span
-                  className="flex h-8 w-8 items-center justify-center rounded-lg transition-all"
+                <Icon
+                  size={22}
+                  strokeWidth={2.2}
+                  className={isActive ? "text-foreground" : "text-muted-foreground"}
                   style={
                     isActive
                       ? {
-                          background: "var(--gradient-brand)",
-                          boxShadow: "var(--shadow-glow)",
+                          filter:
+                            "drop-shadow(0 0 6px color-mix(in oklab, var(--swift-purple) 80%, transparent))",
                         }
                       : undefined
                   }
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={2.2}
-                    className={isActive ? "text-primary-foreground" : "text-muted-foreground"}
-                  />
-                </span>
+                />
                 <span
                   className={`text-[11px] font-medium tracking-wide ${
                     isActive ? "text-foreground" : "text-muted-foreground"
@@ -55,6 +51,16 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
                 >
                   {label}
                 </span>
+                {isActive && (
+                  <span
+                    className="absolute -bottom-0.5 h-1 w-8 rounded-full"
+                    style={{
+                      background: "var(--gradient-brand)",
+                      boxShadow:
+                        "0 0 10px color-mix(in oklab, var(--swift-purple) 90%, transparent), 0 0 20px color-mix(in oklab, var(--swift-purple) 60%, transparent)",
+                    }}
+                  />
+                )}
               </button>
             </li>
           );
