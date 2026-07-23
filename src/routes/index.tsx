@@ -56,13 +56,7 @@ function Index() {
         <AppHeader />
         <main className="flex-1">
           {tab === "chats" && <ChatsTab />}
-          {tab === "updates" && (
-            <PlaceholderTab
-              Icon={Radio}
-              title="No updates yet"
-              description="Share moments that disappear in 24 hours. Your updates will appear here."
-            />
-          )}
+          {tab === "updates" && <UpdatesTab />}
           {tab === "contacts" && (
             <PlaceholderTab
               Icon={Users}
