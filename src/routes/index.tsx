@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Radio, Users, PencilLine } from "lucide-react";
+import { Users, PencilLine } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
 import { ChatsTab } from "@/components/tabs/ChatsTab";
+import { UpdatesTab } from "@/components/tabs/UpdatesTab";
 import { PlaceholderTab } from "@/components/tabs/PlaceholderTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
