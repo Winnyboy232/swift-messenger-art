@@ -262,7 +262,15 @@ function MessageBubble({ msg }: { msg: DisplayMessage }) {
         }`}
         style={mine ? { background: "var(--gradient-brand)" } : undefined}
       >
-        {msg.media_url && (
+        {msg.media_url && msg.media_type === "audio" ? (
+          msg.signedMediaUrl ? (
+            <AudioPlayer src={msg.signedMediaUrl} mine={mine} />
+          ) : (
+            <div className="flex h-10 w-56 items-center justify-center rounded-xl bg-black/20">
+              <Loader2 size={16} className="animate-spin opacity-70" />
+            </div>
+          )
+        ) : msg.media_url ? (
           <div className="mb-1 overflow-hidden rounded-xl">
             {msg.signedMediaUrl ? (
               msg.media_type === "video" ? (
@@ -276,7 +284,7 @@ function MessageBubble({ msg }: { msg: DisplayMessage }) {
               </div>
             )}
           </div>
-        )}
+        ) : null}
         {msg.content && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
         <p className={`mt-0.5 text-right text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
