@@ -4,6 +4,8 @@ import { ArrowLeft, Paperclip, Send, Loader2, Image as ImageIcon } from "lucide-
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 const searchSchema = z.object({
   name: z.string().optional(),
@@ -142,6 +144,23 @@ function ChatScreen() {
       setUploading(false);
     }
   };
+  const handleVoice = async (blob: Blob, mime: string, _durationSec: number) => {
+    if (!userId) return;
+    try {
+      const ext = mime.includes("mp4") ? "m4a" : "webm";
+      const path = `${userId}/${chatId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("swifty-media")
+        .upload(path, blob, { contentType: mime, upsert: false });
+      if (upErr) throw upErr;
+      await sendMessage({
+        media_url: path,
+        media_type: "audio",
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Voice upload failed");
+    }
+  };
 
   return (
     <div
@@ -215,15 +234,19 @@ function ChatScreen() {
           placeholder="Message"
           className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-card px-4 py-2.5 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
         />
-        <button
-          type="submit"
-          aria-label="Send"
-          disabled={sending || !text.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
-          style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
-        >
-          <Send size={18} />
-        </button>
+        {text.trim() ? (
+          <button
+            type="submit"
+            aria-label="Send"
+            disabled={sending}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
+            style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
+          >
+            <Send size={18} />
+          </button>
+        ) : (
+          <VoiceRecorder onSend={handleVoice} />
+        )}
       </form>
     </div>
   );
@@ -239,7 +262,15 @@ function MessageBubble({ msg }: { msg: DisplayMessage }) {
         }`}
         style={mine ? { background: "var(--gradient-brand)" } : undefined}
       >
-        {msg.media_url && (
+        {msg.media_url && msg.media_type === "audio" ? (
+          msg.signedMediaUrl ? (
+            <AudioPlayer src={msg.signedMediaUrl} mine={mine} />
+          ) : (
+            <div className="flex h-10 w-56 items-center justify-center rounded-xl bg-black/20">
+              <Loader2 size={16} className="animate-spin opacity-70" />
+            </div>
+          )
+        ) : msg.media_url ? (
           <div className="mb-1 overflow-hidden rounded-xl">
             {msg.signedMediaUrl ? (
               msg.media_type === "video" ? (
@@ -253,7 +284,7 @@ function MessageBubble({ msg }: { msg: DisplayMessage }) {
               </div>
             )}
           </div>
-        )}
+        ) : null}
         {msg.content && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
         <p className={`mt-0.5 text-right text-[10px] ${mine ? "opacity-80" : "text-muted-foreground"}`}>
           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
