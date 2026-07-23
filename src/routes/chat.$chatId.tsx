@@ -144,6 +144,24 @@ function ChatScreen() {
       setUploading(false);
     }
   };
+  const handleVoice = async (blob: Blob, mime: string, durationSec: number) => {
+    if (!userId) return;
+    try {
+      const ext = mime.includes("mp4") ? "m4a" : "webm";
+      const path = `${userId}/${chatId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("swifty-media")
+        .upload(path, blob, { contentType: mime, upsert: false });
+      if (upErr) throw upErr;
+      await sendMessage({
+        media_url: path,
+        media_type: "audio",
+        content: `voice:${Math.round(durationSec)}`,
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Voice upload failed");
+    }
+  };
 
   return (
     <div
