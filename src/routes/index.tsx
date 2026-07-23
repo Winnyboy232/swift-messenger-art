@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Radio, Users, PencilLine } from "lucide-react";
+import { Users, PencilLine } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
 import { ChatsTab } from "@/components/tabs/ChatsTab";
+import { UpdatesTab } from "@/components/tabs/UpdatesTab";
 import { PlaceholderTab } from "@/components/tabs/PlaceholderTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
@@ -55,13 +56,7 @@ function Index() {
         <AppHeader />
         <main className="flex-1">
           {tab === "chats" && <ChatsTab />}
-          {tab === "updates" && (
-            <PlaceholderTab
-              Icon={Radio}
-              title="No updates yet"
-              description="Share moments that disappear in 24 hours. Your updates will appear here."
-            />
-          )}
+          {tab === "updates" && <UpdatesTab />}
           {tab === "contacts" && (
             <PlaceholderTab
               Icon={Users}
