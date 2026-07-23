@@ -156,7 +156,6 @@ function ChatScreen() {
       await sendMessage({
         media_url: path,
         media_type: "audio",
-        content: `voice:${Math.round(durationSec)}`,
       });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Voice upload failed");
