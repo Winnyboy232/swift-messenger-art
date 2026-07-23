@@ -234,15 +234,19 @@ function ChatScreen() {
           placeholder="Message"
           className="max-h-32 min-h-11 flex-1 resize-none rounded-2xl border border-border bg-card px-4 py-2.5 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
         />
-        <button
-          type="submit"
-          aria-label="Send"
-          disabled={sending || !text.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
-          style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
-        >
-          <Send size={18} />
-        </button>
+        {text.trim() ? (
+          <button
+            type="submit"
+            aria-label="Send"
+            disabled={sending}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
+            style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
+          >
+            <Send size={18} />
+          </button>
+        ) : (
+          <VoiceRecorder onSend={handleVoice} />
+        )}
       </form>
     </div>
   );
