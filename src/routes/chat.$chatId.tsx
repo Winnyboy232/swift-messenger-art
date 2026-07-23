@@ -4,6 +4,8 @@ import { ArrowLeft, Paperclip, Send, Loader2, Image as ImageIcon } from "lucide-
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { AudioPlayer } from "@/components/AudioPlayer";
 
 const searchSchema = z.object({
   name: z.string().optional(),
