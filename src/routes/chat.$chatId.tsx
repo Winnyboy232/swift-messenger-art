@@ -144,7 +144,7 @@ function ChatScreen() {
       setUploading(false);
     }
   };
-  const handleVoice = async (blob: Blob, mime: string, durationSec: number) => {
+  const handleVoice = async (blob: Blob, mime: string, _durationSec: number) => {
     if (!userId) return;
     try {
       const ext = mime.includes("mp4") ? "m4a" : "webm";
