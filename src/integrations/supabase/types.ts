@@ -74,6 +74,71 @@ export type Database = {
         }
         Relationships: []
       }
+      update_views: {
+        Row: {
+          created_at: string
+          id: string
+          update_id: string
+          viewer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          update_id: string
+          viewer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          update_id?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "update_views_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      updates: {
+        Row: {
+          background_color: string | null
+          caption: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          media_url: string | null
+          text_content: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          background_color?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_url?: string | null
+          text_content?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          background_color?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_url?: string | null
+          text_content?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
