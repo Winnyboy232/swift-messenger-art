@@ -9,7 +9,7 @@ import {
   Video as VideoIcon,
   MoreVertical,
   Lock,
-  Check,
+  Send,
   CheckCheck,
   Smile,
   Camera,
