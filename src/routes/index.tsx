@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Users, PencilLine } from "lucide-react";
+import { PencilLine } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
 import { ChatsTab } from "@/components/tabs/ChatsTab";
 import { UpdatesTab } from "@/components/tabs/UpdatesTab";
-import { PlaceholderTab } from "@/components/tabs/PlaceholderTab";
+import { ContactsTab } from "@/components/tabs/ContactsTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
 import { supabase } from "@/integrations/supabase/client";
