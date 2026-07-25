@@ -375,7 +375,7 @@ function ChatScreen() {
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
             style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
           >
-            <Check size={20} />
+            <Send size={18} />
           </button>
         ) : (
           <VoiceRecorder onSend={handleVoice} />
