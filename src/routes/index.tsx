@@ -57,13 +57,7 @@ function Index() {
         <main className="flex-1">
           {tab === "chats" && <ChatsTab />}
           {tab === "updates" && <UpdatesTab />}
-          {tab === "contacts" && (
-            <PlaceholderTab
-              Icon={Users}
-              title="Contacts"
-              description="Your Swift contacts will show up here once you connect your address book."
-            />
-          )}
+          {tab === "contacts" && <ContactsTab />}
           {tab === "settings" && <SettingsTab />}
         </main>
         {tab === "chats" && (
