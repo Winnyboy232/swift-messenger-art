@@ -537,6 +537,3 @@ function MessageBubble({
     </div>
   );
 }
-
-// Silence unused import lint in some setups
-void Check;
