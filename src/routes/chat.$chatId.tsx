@@ -75,9 +75,88 @@ function ChatScreen() {
   const [call, setCall] = useState<null | "audio" | "video">(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [reactions, setReactions] = useState<Record<string, string>>({});
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [isSaved, setIsSaved] = useState(true);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [safetyLoaded, setSafetyLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load saved-contact + block status for this chat
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const [{ data: saved }, { data: blocked }] = await Promise.all([
+        supabase.from("saved_contacts").select("id").eq("user_id", userId).eq("chat_id", chatId).maybeSingle(),
+        supabase.from("blocked_chats").select("id").eq("user_id", userId).eq("chat_id", chatId).maybeSingle(),
+      ]);
+      setIsSaved(!!saved);
+      setIsBlocked(!!blocked);
+      setSafetyLoaded(true);
+    })();
+  }, [userId, chatId]);
+
+  const addContact = async () => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("saved_contacts")
+      .insert({ user_id: userId, chat_id: chatId, display_name: name });
+    if (error) return toast.error(error.message);
+    setIsSaved(true);
+    toast.success(`${name} added to contacts`);
+  };
+
+  const blockChat = async (silent = false) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("blocked_chats")
+      .insert({ user_id: userId, chat_id: chatId });
+    if (error && !error.message.includes("duplicate")) return toast.error(error.message);
+    setIsBlocked(true);
+    if (!silent) toast.success(`${name} has been blocked`);
+  };
+
+  const unblockChat = async () => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("blocked_chats")
+      .delete()
+      .eq("user_id", userId)
+      .eq("chat_id", chatId);
+    if (error) return toast.error(error.message);
+    setIsBlocked(false);
+    toast.success(`${name} has been unblocked`);
+  };
+
+  const reportSpam = async () => {
+    if (!userId) return;
+    // Detect if chat_id is a profile UUID; server-side trigger also handles this.
+    const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(chatId);
+    const { error } = await supabase.from("spam_reports").insert({
+      reporter_id: userId,
+      chat_id: chatId,
+      reported_profile_id: uuidLike ? chatId : null,
+    });
+    if (error && !error.message.includes("duplicate")) return toast.error(error.message);
+    toast.success("Report submitted. Thank you for keeping Swift safe.");
+    await blockChat(true);
+  };
+
+  const clearChat = async () => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("user_id", userId)
+      .eq("chat_id", chatId);
+    if (error) return toast.error(error.message);
+    setMessages([]);
+    setConfirmClear(false);
+    toast.success("Chat cleared");
+  };
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
