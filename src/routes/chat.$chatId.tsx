@@ -653,6 +653,8 @@ function UnsavedBanner({
     </div>
   );
 }
+
+function EncryptionBanner({ name }: { name: string }) {
   return (
     <div className="mx-auto flex max-w-[92%] items-start gap-2.5 rounded-2xl border border-primary/20 bg-primary/5 px-3.5 py-2.5">
       <span
