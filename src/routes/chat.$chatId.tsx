@@ -459,73 +459,200 @@ function ChatScreen() {
         </div>
       )}
 
-      <form
-        onSubmit={handleSendText}
-        className="sticky bottom-0 flex items-end gap-2 border-t border-border bg-background/95 px-3 py-2.5 backdrop-blur-xl"
-      >
-        <input ref={fileRef} type="file" accept="image/*,video/*,application/*" className="hidden" onChange={handleFile} />
-        <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
-        <button
-          type="button"
-          aria-label="Attach"
-          disabled={uploading}
-          onClick={() => fileRef.current?.click()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-60"
-        >
-          {uploading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={20} />}
-        </button>
-        <div className="flex min-h-11 flex-1 items-end gap-1 rounded-full border border-border bg-card pl-4 pr-1.5 py-1">
-          <textarea
-            rows={1}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSendText(e as unknown as React.FormEvent);
-              }
-            }}
-            placeholder={`Message ${name}...`}
-            className="max-h-32 min-h-[28px] flex-1 resize-none self-center bg-transparent text-[15px] leading-tight text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            type="button"
-            aria-label="Emoji"
-            onClick={() => setShowEmoji((v) => !v)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
-          >
-            <Smile size={20} />
-          </button>
-          <button
-            type="button"
-            aria-label="Camera"
-            onClick={() => cameraRef.current?.click()}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
-          >
-            <Camera size={20} />
-          </button>
+      {isBlocked ? (
+        <div className="sticky bottom-0 border-t border-border bg-background/95 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-sm text-muted-foreground">
+            You have blocked this contact.{" "}
+            <button
+              type="button"
+              onClick={unblockChat}
+              className="font-medium text-primary hover:underline"
+            >
+              Unblock
+            </button>{" "}
+            to send a message.
+          </p>
         </div>
-        {text.trim() ? (
+      ) : (
+        <form
+          onSubmit={handleSendText}
+          className="sticky bottom-0 flex items-end gap-2 border-t border-border bg-background/95 px-3 py-2.5 backdrop-blur-xl"
+        >
+          <input ref={fileRef} type="file" accept="image/*,video/*,application/*" className="hidden" onChange={handleFile} />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
           <button
-            type="submit"
-            aria-label="Send"
-            disabled={sending}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
-            style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
+            type="button"
+            aria-label="Attach"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-60"
           >
-            <Send size={18} />
+            {uploading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={20} />}
           </button>
-        ) : (
-          <VoiceRecorder onSend={handleVoice} />
-        )}
-      </form>
+          <div className="flex min-h-11 flex-1 items-end gap-1 rounded-full border border-border bg-card pl-4 pr-1.5 py-1">
+            <textarea
+              rows={1}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendText(e as unknown as React.FormEvent);
+                }
+              }}
+              placeholder={`Message ${name}...`}
+              className="max-h-32 min-h-[28px] flex-1 resize-none self-center bg-transparent text-[15px] leading-tight text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            <button
+              type="button"
+              aria-label="Emoji"
+              onClick={() => setShowEmoji((v) => !v)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
+            >
+              <Smile size={20} />
+            </button>
+            <button
+              type="button"
+              aria-label="Camera"
+              onClick={() => cameraRef.current?.click()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground"
+            >
+              <Camera size={20} />
+            </button>
+          </div>
+          {text.trim() ? (
+            <button
+              type="submit"
+              aria-label="Send"
+              disabled={sending}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-primary-foreground transition active:scale-95 disabled:opacity-50"
+              style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
+            >
+              <Send size={18} />
+            </button>
+          ) : (
+            <VoiceRecorder onSend={handleVoice} />
+          )}
+        </form>
+      )}
 
       {call && <CallOverlay kind={call} name={name} initials={initials} onClose={() => setCall(null)} />}
     </div>
   );
 }
 
-function EncryptionBanner({ name }: { name: string }) {
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  danger,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition hover:bg-white/5 ${
+        danger ? "text-destructive" : "text-foreground"
+      }`}
+    >
+      <span className={danger ? "text-destructive" : "text-primary"}>{icon}</span>
+      <span className="flex-1 truncate">{label}</span>
+    </button>
+  );
+}
+
+function ConfirmModal({
+  title,
+  description,
+  confirmLabel,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-6 backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl">
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-full border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-white/5"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded-full bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UnsavedBanner({
+  name,
+  onAdd,
+  onBlock,
+  onReport,
+}: {
+  name: string;
+  onAdd: () => void;
+  onBlock: () => void;
+  onReport: () => void;
+}) {
+  return (
+    <div className="mx-auto flex max-w-[95%] flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 px-3.5 py-3">
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-amber-400">
+          <ShieldAlert size={14} />
+        </span>
+        <p className="text-[12px] leading-relaxed text-foreground/90">
+          <span className="font-semibold">{name}</span> is not in your contacts.
+          Only reply to people you know.
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary/15 px-3 py-2 text-[12px] font-medium text-primary transition hover:bg-primary/25"
+        >
+          <UserPlus size={13} /> Add Contact
+        </button>
+        <button
+          type="button"
+          onClick={onBlock}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-transparent px-3 py-2 text-[12px] font-medium text-foreground transition hover:bg-white/5"
+        >
+          <Ban size={13} /> Block
+        </button>
+        <button
+          type="button"
+          onClick={onReport}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-destructive/40 bg-transparent px-3 py-2 text-[12px] font-medium text-destructive transition hover:bg-destructive/10"
+        >
+          <Flag size={13} /> Report Spam
+        </button>
+      </div>
+    </div>
+  );
+}
   return (
     <div className="mx-auto flex max-w-[92%] items-start gap-2.5 rounded-2xl border border-primary/20 bg-primary/5 px-3.5 py-2.5">
       <span
