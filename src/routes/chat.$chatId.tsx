@@ -360,14 +360,55 @@ function ChatScreen() {
         >
           <VideoIcon size={20} />
         </button>
-        <button
-          type="button"
-          aria-label="Options"
-          className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
-        >
-          <MoreVertical size={19} />
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            aria-label="Options"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
+          >
+            <MoreVertical size={19} />
+          </button>
+          {menuOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Close menu"
+                className="fixed inset-0 z-40 cursor-default"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-11 z-50 w-60 overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+                <MenuItem icon={<Info size={16} />} label="View Contact Info" onClick={() => { setMenuOpen(false); toast("Contact info coming soon"); }} />
+                <MenuItem icon={<Paperclip size={16} />} label="Media, Links & Docs" onClick={() => { setMenuOpen(false); toast("Media gallery coming soon"); }} />
+                <MenuItem
+                  icon={<BellOff size={16} />}
+                  label={muted ? "Unmute Notifications" : "Mute Notifications"}
+                  onClick={() => { setMuted((m) => !m); setMenuOpen(false); toast.success(muted ? "Notifications unmuted" : "Notifications muted"); }}
+                />
+                <MenuItem icon={<SearchIcon size={16} />} label="Search Chat" onClick={() => { setMenuOpen(false); toast("Search coming soon"); }} />
+                <MenuItem icon={<Trash2 size={16} />} label="Clear Chat" onClick={() => { setMenuOpen(false); setConfirmClear(true); }} />
+                <div className="my-1 h-px bg-border" />
+                {isBlocked ? (
+                  <MenuItem icon={<Ban size={16} />} label={`Unblock ${name}`} onClick={() => { setMenuOpen(false); unblockChat(); }} danger />
+                ) : (
+                  <MenuItem icon={<Ban size={16} />} label={`Block ${name}`} onClick={() => { setMenuOpen(false); blockChat(); }} danger />
+                )}
+                <MenuItem icon={<Flag size={16} />} label={`Report ${name}`} onClick={() => { setMenuOpen(false); reportSpam(); }} danger />
+              </div>
+            </>
+          )}
+        </div>
       </header>
+
+      {confirmClear && (
+        <ConfirmModal
+          title="Clear this chat?"
+          description={`This will permanently delete your local message history with ${name}. This action cannot be undone.`}
+          confirmLabel="Clear Chat"
+          onCancel={() => setConfirmClear(false)}
+          onConfirm={clearChat}
+        />
+      )}
 
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
         <EncryptionBanner name={name} />
