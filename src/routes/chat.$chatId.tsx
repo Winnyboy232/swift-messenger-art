@@ -15,6 +15,16 @@ import {
   Camera,
   Download,
   FileText,
+  Info,
+  Paperclip,
+  BellOff,
+  Search as SearchIcon,
+  Trash2,
+  Ban,
+  Flag,
+  UserPlus,
+  ShieldAlert,
+  X,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
