@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_chats: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_id: string
@@ -53,7 +74,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_suspended: boolean
           phone: string | null
+          spam_reports_count: number
           updated_at: string
         }
         Insert: {
@@ -61,7 +84,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_suspended?: boolean
           phone?: string | null
+          spam_reports_count?: number
           updated_at?: string
         }
         Update: {
@@ -69,10 +94,68 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_suspended?: boolean
           phone?: string | null
+          spam_reports_count?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      saved_contacts: {
+        Row: {
+          chat_id: string
+          created_at: string
+          display_name: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      spam_reports: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          reported_profile_id: string | null
+          reporter_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          reported_profile_id?: string | null
+          reporter_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          reported_profile_id?: string | null
+          reporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spam_reports_reported_profile_id_fkey"
+            columns: ["reported_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       update_views: {
         Row: {
