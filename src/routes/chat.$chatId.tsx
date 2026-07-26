@@ -411,6 +411,14 @@ function ChatScreen() {
       )}
 
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
+        {safetyLoaded && !isSaved && !isBlocked && (
+          <UnsavedBanner
+            name={name}
+            onAdd={addContact}
+            onBlock={() => blockChat()}
+            onReport={reportSpam}
+          />
+        )}
         <EncryptionBanner name={name} />
         {groupedByDay.length === 0 && (
           <p className="mx-auto mt-16 max-w-[240px] text-center text-sm text-muted-foreground">
