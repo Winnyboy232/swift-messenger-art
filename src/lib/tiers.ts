@@ -118,3 +118,13 @@ export const STORE_ITEMS: StoreItem[] = [
   { id: "theme-premium", name: "Premium Theme", description: "A single premium chat theme", amountKobo: 100000, price: "₦1,000", type: "theme" },
   { id: "theme-bundle", name: "Theme Bundle (5–10 themes)", description: "Full premium theme collection", amountKobo: 350000, price: "₦3,500", type: "theme" },
 ];
+
+/** Demo contact tiers so badges render across chats and lists. */
+export const CONTACT_TIERS: Record<string, Tier> = {
+  "ava-chen": "pro",
+  "marcus-rivera": "basic",
+  "design-team": "free",
+  "priya-patel": "ultimate",
+  "weekend-trip": "free",
+  "jonas-meyer": "basic",
+};
