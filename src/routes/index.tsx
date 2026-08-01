@@ -9,6 +9,8 @@ import { ContactsTab } from "@/components/tabs/ContactsTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
+import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
 
 export const Route = createFileRoute("/")({
   ssr: false,
