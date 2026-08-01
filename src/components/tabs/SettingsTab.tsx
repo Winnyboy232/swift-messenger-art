@@ -60,31 +60,6 @@ export function SettingsTab() {
   const tier = (profile?.subscription_tier ?? "free") as Tier;
 
 
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      const user = data.user;
-      if (!user) return;
-      setEmail(user.email ?? null);
-      setPhone(user.phone ?? null);
-      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      const metaName =
-        (meta.full_name as string) ||
-        (meta.name as string) ||
-        user.email?.split("@")[0] ||
-        user.phone ||
-        "Swift User";
-      setName(metaName);
-      setAvatarUrl((meta.avatar_url as string) ?? null);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.display_name) setName(profile.display_name);
-      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-    });
-  }, []);
 
   const initials = name
     .split(" ")
