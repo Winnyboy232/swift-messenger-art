@@ -81,6 +81,9 @@ function Index() {
           </button>
         )}
       </div>
+      {isFrozen && profile && (
+        <FreezeOverlay userId={profile.id} onAppealed={() => void reloadProfile()} />
+      )}
       <BottomNav active={tab} onChange={setTab} />
     </div>
   );
