@@ -32,6 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { CallOverlay } from "@/components/CallOverlay";
+import { TierBadge } from "@/components/TierBadge";
+import { CONTACT_TIERS } from "@/lib/tiers";
+import { useProfile } from "@/hooks/useProfile";
+import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
 
 const searchSchema = z.object({
   name: z.string().optional(),
