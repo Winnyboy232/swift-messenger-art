@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { TierBadge } from "@/components/TierBadge";
+import { CONTACT_TIERS } from "@/lib/tiers";
 
 export const placeholderChats = [
   { id: "ava-chen", name: "Ava Chen", preview: "See you tomorrow ✨", time: "09:42", unread: 2, initials: "AC" },
