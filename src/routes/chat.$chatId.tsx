@@ -364,7 +364,7 @@ function ChatScreen() {
 
         <button
           type="button"
-          onClick={() => setCall("audio")}
+          onClick={() => startCall("audio")}
           aria-label="Audio call"
           className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
         >
@@ -372,7 +372,7 @@ function ChatScreen() {
         </button>
         <button
           type="button"
-          onClick={() => setCall("video")}
+          onClick={() => startCall("video")}
           aria-label="Video call"
           className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
         >
