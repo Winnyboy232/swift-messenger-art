@@ -337,6 +337,7 @@ export type Database = {
     Functions: {
       is_spam_immune: { Args: { _user_id: string }; Returns: boolean }
       process_freeze_appeals: { Args: { _user_id: string }; Returns: boolean }
+      process_my_freeze_appeal: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
