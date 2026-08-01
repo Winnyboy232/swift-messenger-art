@@ -341,9 +341,13 @@ function ChatScreen() {
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
+            <TierBadge tier={CONTACT_TIERS[chatId] ?? "free"} size={14} />
+          </div>
           <p className="text-[11px] text-muted-foreground">Online</p>
         </div>
+
         <button
           type="button"
           onClick={() => setCall("audio")}
