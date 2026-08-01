@@ -77,6 +77,16 @@ function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [call, setCall] = useState<null | "audio" | "video">(null);
+  const { profile, reload: reloadProfile } = useProfile();
+  const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
+  const isFrozen = !!profile?.is_frozen && !isImmune;
+  const startCall = (kind: "audio" | "video") => {
+    if (isFrozen) {
+      toast.error("Calls are paused while your account is frozen");
+      return;
+    }
+    setCall(kind);
+  };
   const [showEmoji, setShowEmoji] = useState(false);
   const [reactions, setReactions] = useState<Record<string, string>>({});
   const [menuOpen, setMenuOpen] = useState(false);
