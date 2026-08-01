@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Bell,
   Lock,
@@ -13,11 +13,18 @@ import {
   ChevronRight,
   Camera,
   Loader2,
+  Sparkles,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
+import { TierBadge } from "@/components/TierBadge";
+import { PremiumPlans } from "@/components/premium/PremiumPlans";
+import { SwiftStore } from "@/components/premium/SwiftStore";
+import { TIER_LABEL, type Tier } from "@/lib/tiers";
 
 interface Row {
   icon: LucideIcon;
@@ -42,11 +49,16 @@ const GROUP_2: Row[] = [
 
 export function SettingsTab() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string | null>(null);
-  const [phone, setPhone] = useState<string | null>(null);
-  const [name, setName] = useState<string>("Swift User");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { profile, email, reload } = useProfile();
   const [signingOut, setSigningOut] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
+
+  const name = profile?.display_name || email?.split("@")[0] || profile?.phone || "Swift User";
+  const avatarUrl = profile?.avatar_url ?? null;
+  const phone = profile?.phone ?? null;
+  const tier = (profile?.subscription_tier ?? "free") as Tier;
+
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
