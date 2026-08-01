@@ -195,7 +195,29 @@ export function SettingsTab() {
         </div>
         Sign Out
       </button>
+
+      <PremiumPlans
+        open={plansOpen}
+        onClose={() => setPlansOpen(false)}
+        currentTier={tier}
+        email={email}
+        userId={profile?.id ?? null}
+        isAdmin={profile?.is_admin ?? false}
+        onUpgraded={() => {
+          setPlansOpen(false);
+          void reload();
+        }}
+      />
+      <SwiftStore
+        open={storeOpen}
+        onClose={() => setStoreOpen(false)}
+        email={email}
+        userId={profile?.id ?? null}
+        credits={profile?.ai_credits ?? 0}
+        onPurchased={() => void reload()}
+      />
     </div>
+
   );
 }
 
