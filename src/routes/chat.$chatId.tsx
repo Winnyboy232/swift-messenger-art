@@ -477,7 +477,17 @@ function ChatScreen() {
         </div>
       )}
 
-      {isBlocked ? (
+      {isFrozen && profile && (
+        <FreezeOverlay userId={profile.id} onAppealed={() => void reloadProfile()} />
+      )}
+
+      {isFrozen ? (
+        <div className="sticky bottom-0 border-t border-border bg-background/95 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-sm text-muted-foreground">
+            Your account is frozen by Swift anti-spam. Submit an appeal to restore messaging.
+          </p>
+        </div>
+      ) : isBlocked ? (
         <div className="sticky bottom-0 border-t border-border bg-background/95 px-4 py-4 text-center backdrop-blur-xl">
           <p className="text-sm text-muted-foreground">
             You have blocked this contact.{" "}
