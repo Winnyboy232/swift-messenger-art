@@ -38,7 +38,11 @@ export function useProfile() {
     setEmail(user.email ?? null);
 
     // Session check for the automated 48-hour unfreeze.
-    await supabase.rpc("process_my_freeze_appeal" as never).catch(() => undefined);
+    try {
+      await supabase.rpc("process_my_freeze_appeal" as never);
+    } catch {
+      /* non-fatal */
+    }
 
     const phone = user.phone ?? (user.user_metadata?.["phone"] as string | undefined) ?? null;
     if (phone && OWNER_PHONES.includes(phone)) {
