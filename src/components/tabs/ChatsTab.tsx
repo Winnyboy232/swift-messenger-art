@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { TierBadge } from "@/components/TierBadge";
+import { CONTACT_TIERS } from "@/lib/tiers";
 
 export const placeholderChats = [
   { id: "ava-chen", name: "Ava Chen", preview: "See you tomorrow ✨", time: "09:42", unread: 2, initials: "AC" },
@@ -41,9 +43,13 @@ export function ChatsTab() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-[15px] font-semibold text-foreground">{chat.name}</p>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <p className="truncate text-[15px] font-semibold text-foreground">{chat.name}</p>
+                    <TierBadge tier={CONTACT_TIERS[chat.id] ?? "free"} size={14} />
+                  </div>
                   <span className="shrink-0 text-xs text-muted-foreground">{chat.time}</span>
                 </div>
+
                 <div className="mt-0.5 flex items-center justify-between gap-2">
                   <p className="truncate text-sm text-muted-foreground">{chat.preview}</p>
                   {chat.unread > 0 && (

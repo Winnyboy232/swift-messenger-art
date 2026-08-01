@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Bell,
   Lock,
@@ -13,11 +13,18 @@ import {
   ChevronRight,
   Camera,
   Loader2,
+  Sparkles,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
+import { TierBadge } from "@/components/TierBadge";
+import { PremiumPlans } from "@/components/premium/PremiumPlans";
+import { SwiftStore } from "@/components/premium/SwiftStore";
+import { TIER_LABEL, type Tier } from "@/lib/tiers";
 
 interface Row {
   icon: LucideIcon;
@@ -42,37 +49,17 @@ const GROUP_2: Row[] = [
 
 export function SettingsTab() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string | null>(null);
-  const [phone, setPhone] = useState<string | null>(null);
-  const [name, setName] = useState<string>("Swift User");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { profile, email, reload } = useProfile();
   const [signingOut, setSigningOut] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      const user = data.user;
-      if (!user) return;
-      setEmail(user.email ?? null);
-      setPhone(user.phone ?? null);
-      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      const metaName =
-        (meta.full_name as string) ||
-        (meta.name as string) ||
-        user.email?.split("@")[0] ||
-        user.phone ||
-        "Swift User";
-      setName(metaName);
-      setAvatarUrl((meta.avatar_url as string) ?? null);
+  const name = profile?.display_name || email?.split("@")[0] || profile?.phone || "Swift User";
+  const avatarUrl = profile?.avatar_url ?? null;
+  const phone = profile?.phone ?? null;
+  const tier = (profile?.subscription_tier ?? "free") as Tier;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.display_name) setName(profile.display_name);
-      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-    });
-  }, []);
+
 
   const initials = name
     .split(" ")
@@ -121,8 +108,14 @@ export function SettingsTab() {
           </button>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-bold text-foreground">{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-base font-bold text-foreground">{name}</p>
+            <TierBadge tier={tier} size={16} />
+          </div>
           <p className="truncate text-xs text-muted-foreground">{email || phone || ""}</p>
+          <p className="mt-0.5 text-[11px] font-semibold text-primary">
+            {profile?.is_admin ? "Owner · Ultimate" : `${TIER_LABEL[tier]} plan`}
+          </p>
         </div>
         <button
           type="button"
@@ -134,10 +127,55 @@ export function SettingsTab() {
         </button>
       </div>
 
+      <div className="mb-4 space-y-2">
+        <button
+          type="button"
+          onClick={() => setPlansOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border p-3 text-left"
+          style={{
+            background:
+              "linear-gradient(160deg, color-mix(in oklab, var(--swift-purple) 22%, var(--card)) 0%, var(--card) 70%)",
+          }}
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "var(--gradient-brand)" }}
+          >
+            <Sparkles size={16} className="text-primary-foreground" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Swift Premium &amp; Plans</p>
+            <p className="truncate text-xs text-muted-foreground">Basic, Pro & Ultimate tiers</p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStoreOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "color-mix(in oklab, var(--swift-purple) 22%, transparent)" }}
+          >
+            <ShoppingBag size={16} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Swift Store</p>
+            <p className="truncate text-xs text-muted-foreground">
+              AI credits, stickers & themes · {profile?.ai_credits ?? 0} credits
+            </p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+      </div>
+
       <SettingsGroup rows={GROUP_1} />
       <div className="h-4" />
       <SettingsGroup rows={GROUP_2} />
       <div className="h-4" />
+
 
       <button
         type="button"
@@ -157,7 +195,29 @@ export function SettingsTab() {
         </div>
         Sign Out
       </button>
+
+      <PremiumPlans
+        open={plansOpen}
+        onClose={() => setPlansOpen(false)}
+        currentTier={tier}
+        email={email}
+        userId={profile?.id ?? null}
+        isAdmin={profile?.is_admin ?? false}
+        onUpgraded={() => {
+          setPlansOpen(false);
+          void reload();
+        }}
+      />
+      <SwiftStore
+        open={storeOpen}
+        onClose={() => setStoreOpen(false)}
+        email={email}
+        userId={profile?.id ?? null}
+        credits={profile?.ai_credits ?? 0}
+        onPurchased={() => void reload()}
+      />
     </div>
+
   );
 }
 

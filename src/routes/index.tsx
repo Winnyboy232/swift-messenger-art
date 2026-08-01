@@ -9,6 +9,8 @@ import { ContactsTab } from "@/components/tabs/ContactsTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
 import { Splash } from "@/components/Splash";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
+import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -17,9 +19,13 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const navigate = useNavigate();
+  const { profile, reload: reloadProfile } = useProfile();
   const [tab, setTab] = useState<TabId>("chats");
   const [checking, setChecking] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
+  const isFrozen = !!profile?.is_frozen && !isImmune;
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -75,6 +81,9 @@ function Index() {
           </button>
         )}
       </div>
+      {isFrozen && profile && (
+        <FreezeOverlay userId={profile.id} onAppealed={() => void reloadProfile()} />
+      )}
       <BottomNav active={tab} onChange={setTab} />
     </div>
   );

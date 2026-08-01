@@ -32,6 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { CallOverlay } from "@/components/CallOverlay";
+import { TierBadge } from "@/components/TierBadge";
+import { CONTACT_TIERS } from "@/lib/tiers";
+import { useProfile } from "@/hooks/useProfile";
+import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
 
 const searchSchema = z.object({
   name: z.string().optional(),
@@ -73,6 +77,16 @@ function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [call, setCall] = useState<null | "audio" | "video">(null);
+  const { profile, reload: reloadProfile } = useProfile();
+  const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
+  const isFrozen = !!profile?.is_frozen && !isImmune;
+  const startCall = (kind: "audio" | "video") => {
+    if (isFrozen) {
+      toast.error("Calls are paused while your account is frozen");
+      return;
+    }
+    setCall(kind);
+  };
   const [showEmoji, setShowEmoji] = useState(false);
   const [reactions, setReactions] = useState<Record<string, string>>({});
   const [menuOpen, setMenuOpen] = useState(false);
@@ -341,12 +355,16 @@ function ChatScreen() {
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
+            <TierBadge tier={CONTACT_TIERS[chatId] ?? "free"} size={14} />
+          </div>
           <p className="text-[11px] text-muted-foreground">Online</p>
         </div>
+
         <button
           type="button"
-          onClick={() => setCall("audio")}
+          onClick={() => startCall("audio")}
           aria-label="Audio call"
           className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
         >
@@ -354,7 +372,7 @@ function ChatScreen() {
         </button>
         <button
           type="button"
-          onClick={() => setCall("video")}
+          onClick={() => startCall("video")}
           aria-label="Video call"
           className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition hover:bg-card"
         >
@@ -459,7 +477,17 @@ function ChatScreen() {
         </div>
       )}
 
-      {isBlocked ? (
+      {isFrozen && profile && (
+        <FreezeOverlay userId={profile.id} onAppealed={() => void reloadProfile()} />
+      )}
+
+      {isFrozen ? (
+        <div className="sticky bottom-0 border-t border-border bg-background/95 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-sm text-muted-foreground">
+            Your account is frozen by Swift anti-spam. Submit an appeal to restore messaging.
+          </p>
+        </div>
+      ) : isBlocked ? (
         <div className="sticky bottom-0 border-t border-border bg-background/95 px-4 py-4 text-center backdrop-blur-xl">
           <p className="text-sm text-muted-foreground">
             You have blocked this contact.{" "}
