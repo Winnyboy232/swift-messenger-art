@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeals: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          resolved_at: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          resolved_at?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          resolved_at?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_chats: {
         Row: {
           chat_id: string
@@ -70,34 +103,85 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_credits: number
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          frozen_at: string | null
           id: string
+          is_admin: boolean
+          is_frozen: boolean
           is_suspended: boolean
           phone: string | null
           spam_reports_count: number
+          subscription_expires_at: string | null
+          subscription_tier: string
           updated_at: string
         }
         Insert: {
+          ai_credits?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          frozen_at?: string | null
           id: string
+          is_admin?: boolean
+          is_frozen?: boolean
           is_suspended?: boolean
           phone?: string | null
           spam_reports_count?: number
+          subscription_expires_at?: string | null
+          subscription_tier?: string
           updated_at?: string
         }
         Update: {
+          ai_credits?: number
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          frozen_at?: string | null
           id?: string
+          is_admin?: boolean
+          is_frozen?: boolean
           is_suspended?: boolean
           phone?: string | null
           spam_reports_count?: number
+          subscription_expires_at?: string | null
+          subscription_tier?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount_kobo: number
+          created_at: string
+          id: string
+          item_id: string
+          item_name: string
+          metadata: Json
+          reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_kobo: number
+          created_at?: string
+          id?: string
+          item_id: string
+          item_name: string
+          metadata?: Json
+          reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_kobo?: number
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_name?: string
+          metadata?: Json
+          reference?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -156,6 +240,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      unlocked_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       update_views: {
         Row: {
@@ -227,7 +335,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_spam_immune: { Args: { _user_id: string }; Returns: boolean }
+      process_freeze_appeals: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
