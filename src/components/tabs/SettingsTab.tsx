@@ -108,8 +108,14 @@ export function SettingsTab() {
           </button>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-bold text-foreground">{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-base font-bold text-foreground">{name}</p>
+            <TierBadge tier={tier} size={16} />
+          </div>
           <p className="truncate text-xs text-muted-foreground">{email || phone || ""}</p>
+          <p className="mt-0.5 text-[11px] font-semibold text-primary">
+            {profile?.is_admin ? "Owner · Ultimate" : `${TIER_LABEL[tier]} plan`}
+          </p>
         </div>
         <button
           type="button"
@@ -121,10 +127,55 @@ export function SettingsTab() {
         </button>
       </div>
 
+      <div className="mb-4 space-y-2">
+        <button
+          type="button"
+          onClick={() => setPlansOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border p-3 text-left"
+          style={{
+            background:
+              "linear-gradient(160deg, color-mix(in oklab, var(--swift-purple) 22%, var(--card)) 0%, var(--card) 70%)",
+          }}
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "var(--gradient-brand)" }}
+          >
+            <Sparkles size={16} className="text-primary-foreground" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Swift Premium &amp; Plans</p>
+            <p className="truncate text-xs text-muted-foreground">Basic, Pro & Ultimate tiers</p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStoreOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "color-mix(in oklab, var(--swift-purple) 22%, transparent)" }}
+          >
+            <ShoppingBag size={16} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Swift Store</p>
+            <p className="truncate text-xs text-muted-foreground">
+              AI credits, stickers & themes · {profile?.ai_credits ?? 0} credits
+            </p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+      </div>
+
       <SettingsGroup rows={GROUP_1} />
       <div className="h-4" />
       <SettingsGroup rows={GROUP_2} />
       <div className="h-4" />
+
 
       <button
         type="button"
