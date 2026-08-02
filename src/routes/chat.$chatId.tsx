@@ -36,6 +36,10 @@ import { TierBadge } from "@/components/TierBadge";
 import { CONTACT_TIERS } from "@/lib/tiers";
 import { useProfile } from "@/hooks/useProfile";
 import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
+import { SwiftAIChat } from "@/components/ai/SwiftAIChat";
+import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
+import swiftLogo from "@/assets/swifty-logo.png";
+
 
 const searchSchema = z.object({
   name: z.string().optional(),
@@ -567,7 +571,49 @@ function ChatScreen() {
       )}
 
       {call && <CallOverlay kind={call} name={name} initials={initials} onClose={() => setCall(null)} />}
+      <button
+        type="button"
+        aria-label="Ask Swift AI"
+        onClick={() => setAiOpen(true)}
+        className="fixed bottom-28 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-40 flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95"
+        style={{
+          background: "var(--gradient-brand)",
+          boxShadow: "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent)",
+        }}
+      >
+        <img src={swiftLogo} alt="" width={30} height={30} style={{ width: 30, height: 30 }} />
+      </button>
+
+      {aiOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60">
+          <button
+            type="button"
+            aria-label="Close Swift AI"
+            className="flex-1"
+            onClick={() => setAiOpen(false)}
+          />
+          <div className="mx-auto flex h-[78vh] w-full max-w-md flex-col rounded-t-3xl border-t border-border bg-background">
+            <header className="flex items-center gap-3 border-b border-border px-4 py-3">
+              <SwiftAIAvatar size={34} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-foreground">Swift AI</p>
+                <p className="text-[11px] text-muted-foreground">Quick assist in this chat</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiOpen(false)}
+                aria-label="Close"
+                className="text-muted-foreground"
+              >
+                <X size={19} />
+              </button>
+            </header>
+            <SwiftAIChat compact />
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
 
