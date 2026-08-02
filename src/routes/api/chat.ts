@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { streamText, generateText, type ModelMessage } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT =
@@ -21,9 +21,7 @@ export const Route = createFileRoute("/api/chat")({
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const gateway = createLovableAiGatewayProvider(key);
-        let streamErr = '';
         const result = streamText({
-          onError: ({ error }) => { streamErr = String((error as Error)?.stack ?? error); },
           model: gateway("google/gemini-3.6-flash"),
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
@@ -31,7 +29,27 @@ export const Route = createFileRoute("/api/chat")({
           ] as ModelMessage[],
         });
 
-        try { const g = await generateText({ model: gateway('google/gemini-3.6-flash'), messages: [{ role: 'user', content: 'hi' }] }); return new Response('GEN:' + g.text); } catch (e) { return new Response('ERR: ' + (e as Error).message + ' | ' + streamErr, { status: 500 }); }
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream<Uint8Array>({
+          async start(controller) {
+            try {
+              for await (const chunk of result.textStream) {
+                controller.enqueue(encoder.encode(chunk));
+              }
+            } catch (error) {
+              controller.enqueue(
+                encoder.encode(
+                  `\n[Swift AI error: ${error instanceof Error ? error.message : "unknown"}]`,
+                ),
+              );
+            }
+            controller.close();
+          },
+        });
+
+        return new Response(stream, {
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
       },
     },
   },
