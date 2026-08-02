@@ -20,9 +20,16 @@ declare global {
   }
 }
 
-export function getPaystackKey(): string | undefined {
-  return import.meta.env['VITE_PAYSTACK_PUBLIC_KEY'] as string | undefined;
+/** Live Paystack public key (publishable — safe in client code). */
+const DEFAULT_PAYSTACK_PUBLIC_KEY = "pk_live_88d403c4b31a54fd88524f5ad30d8614e211229a";
+
+export function getPaystackKey(): string {
+  return (
+    (import.meta.env['VITE_PAYSTACK_PUBLIC_KEY'] as string | undefined) ||
+    DEFAULT_PAYSTACK_PUBLIC_KEY
+  );
 }
+
 
 let loading: Promise<void> | null = null;
 

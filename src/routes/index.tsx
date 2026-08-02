@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PencilLine } from "lucide-react";
+import swiftLogo from "@/assets/swifty-logo.png";
+
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
 import { ChatsTab } from "@/components/tabs/ChatsTab";
@@ -67,19 +69,36 @@ function Index() {
           {tab === "settings" && <SettingsTab />}
         </main>
         {tab === "chats" && (
-          <button
-            type="button"
-            aria-label="New message"
-            className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30 flex h-14 w-14 items-center justify-center rounded-full text-primary-foreground transition active:scale-95"
-            style={{
-              background: "var(--gradient-brand)",
-              boxShadow:
-                "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent), 0 0 24px -4px color-mix(in oklab, var(--swift-blue) 60%, transparent)",
-            }}
-          >
-            <PencilLine size={22} strokeWidth={2.2} />
-          </button>
+          <div className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30 flex flex-col items-end gap-3">
+            <button
+              type="button"
+              aria-label="New message"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground transition active:scale-95"
+            >
+              <PencilLine size={19} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              aria-label="Chat with Swift AI"
+              onClick={() => navigate({ to: "/ai" })}
+              className="flex h-16 w-16 items-center justify-center rounded-full transition active:scale-95"
+              style={{
+                background: "var(--gradient-brand)",
+                boxShadow:
+                  "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent), 0 0 24px -4px color-mix(in oklab, var(--swift-blue) 60%, transparent)",
+              }}
+            >
+              <img
+                src={swiftLogo}
+                alt=""
+                width={34}
+                height={34}
+                style={{ width: 34, height: 34 }}
+              />
+            </button>
+          </div>
         )}
+
       </div>
       {isFrozen && profile && (
         <FreezeOverlay userId={profile.id} onAppealed={() => void reloadProfile()} />

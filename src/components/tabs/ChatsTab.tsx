@@ -1,7 +1,9 @@
-import { Search } from "lucide-react";
+import { Search, Pin } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { TierBadge } from "@/components/TierBadge";
+import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
 import { CONTACT_TIERS } from "@/lib/tiers";
+
 
 export const placeholderChats = [
   { id: "ava-chen", name: "Ava Chen", preview: "See you tomorrow ✨", time: "09:42", unread: 2, initials: "AC" },
@@ -26,7 +28,32 @@ export function ChatsTab() {
           />
         </div>
       </div>
+      <Link
+        to="/ai"
+        className="flex w-full items-center gap-3 border-y border-border px-4 py-3.5 text-left transition-colors active:bg-card"
+        style={{
+          background:
+            "linear-gradient(100deg, color-mix(in oklab, var(--swift-purple) 16%, transparent) 0%, transparent 70%)",
+        }}
+      >
+        <SwiftAIAvatar size={48} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <p className="truncate text-[15px] font-semibold text-foreground">
+                Swift AI Assistant
+              </p>
+              <Pin size={12} className="shrink-0 text-primary" />
+            </div>
+            <span className="shrink-0 text-xs text-muted-foreground">Now</span>
+          </div>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            Ask me anything — free & unlimited
+          </p>
+        </div>
+      </Link>
       <ul className="divide-y divide-border">
+
         {placeholderChats.map((chat) => (
           <li key={chat.id}>
             <Link
