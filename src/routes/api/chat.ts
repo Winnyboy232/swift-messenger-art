@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/chat")({
         try {
           const result = await generateText({
             model: gateway("google/gemini-3.6-flash"),
-            system: SYSTEM_PROMPT,
+            instructions: SYSTEM_PROMPT,
             messages: messages.map((m) => ({
               role: m.role,
               content: m.content,
