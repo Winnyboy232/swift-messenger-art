@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/chat")({
           ] as ModelMessage[],
         });
 
-        return result.toTextStreamResponse();
+        try { return new Response(await result.text); } catch (e) { return new Response('ERR: ' + (e as Error).message, { status: 500 }); }
       },
     },
   },
