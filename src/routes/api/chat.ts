@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { streamText, type ModelMessage } from "ai";
+import { streamText, generateText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT =
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/chat")({
           ] as ModelMessage[],
         });
 
-        try { return new Response(await result.text); } catch (e) { return new Response('ERR: ' + (e as Error).message + ' | ' + streamErr, { status: 500 }); }
+        try { const g = await generateText({ model: gateway('google/gemini-3.6-flash'), messages: [{ role: 'user', content: 'hi' }] }); return new Response('GEN:' + g.text); } catch (e) { return new Response('ERR: ' + (e as Error).message + ' | ' + streamErr, { status: 500 }); }
       },
     },
   },
