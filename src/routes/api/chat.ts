@@ -26,10 +26,11 @@ export const Route = createFileRoute("/api/chat")({
         try {
           const result = await generateText({
             model: gateway("google/gemini-3.6-flash"),
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              ...messages.map((m) => ({ role: m.role, content: m.content })),
-            ] as ModelMessage[],
+            system: SYSTEM_PROMPT,
+            messages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })) as ModelMessage[],
           });
           text = result.text;
         } catch (error) {
