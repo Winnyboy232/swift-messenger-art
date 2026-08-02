@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { streamText, type ModelMessage } from "ai";
+import { generateText, type ModelMessage } from "ai";
 import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT =
@@ -21,27 +21,31 @@ export const Route = createFileRoute("/api/chat")({
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const gateway = createLovableAiGatewayProvider(key);
-        const result = streamText({
-          model: gateway("google/gemini-3.6-flash"),
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            ...messages.map((m) => ({ role: m.role, content: m.content })),
-          ] as ModelMessage[],
-        });
 
+        let text: string;
+        try {
+          const result = await generateText({
+            model: gateway("google/gemini-3.6-flash"),
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              ...messages.map((m) => ({ role: m.role, content: m.content })),
+            ] as ModelMessage[],
+          });
+          text = result.text;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Swift AI failed";
+          const status = /rate limit|429/i.test(message) ? 429 : /402/.test(message) ? 402 : 500;
+          return new Response(message, { status });
+        }
+
+        // Progressive delivery so the client renders the answer as it arrives.
         const encoder = new TextEncoder();
         const stream = new ReadableStream<Uint8Array>({
           async start(controller) {
-            try {
-              for await (const chunk of result.textStream) {
-                controller.enqueue(encoder.encode(chunk));
-              }
-            } catch (error) {
-              controller.enqueue(
-                encoder.encode(
-                  `\n[Swift AI error: ${error instanceof Error ? error.message : "unknown"}]`,
-                ),
-              );
+            const words = text.split(/(\s+)/);
+            for (let i = 0; i < words.length; i += 3) {
+              controller.enqueue(encoder.encode(words.slice(i, i + 3).join("")));
+              await new Promise((r) => setTimeout(r, 18));
             }
             controller.close();
           },
