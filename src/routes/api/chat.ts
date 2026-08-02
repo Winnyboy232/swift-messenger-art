@@ -21,7 +21,9 @@ export const Route = createFileRoute("/api/chat")({
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const gateway = createLovableAiGatewayProvider(key);
+        let streamErr = '';
         const result = streamText({
+          onError: ({ error }) => { streamErr = String((error as Error)?.stack ?? error); },
           model: gateway("google/gemini-3.6-flash"),
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
@@ -29,7 +31,7 @@ export const Route = createFileRoute("/api/chat")({
           ] as ModelMessage[],
         });
 
-        try { return new Response(await result.text); } catch (e) { return new Response('ERR: ' + (e as Error).message, { status: 500 }); }
+        try { return new Response(await result.text); } catch (e) { return new Response('ERR: ' + (e as Error).message + ' | ' + streamErr, { status: 500 }); }
       },
     },
   },
