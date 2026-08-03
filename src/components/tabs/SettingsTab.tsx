@@ -15,6 +15,8 @@ import {
   Loader2,
   Sparkles,
   ShoppingBag,
+  Gift,
+  TicketCheck,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,6 +26,9 @@ import { useProfile } from "@/hooks/useProfile";
 import { TierBadge } from "@/components/TierBadge";
 import { PremiumPlans } from "@/components/premium/PremiumPlans";
 import { SwiftStore } from "@/components/premium/SwiftStore";
+import { GiftPremium } from "@/components/premium/GiftPremium";
+import { RedeemCode } from "@/components/premium/RedeemCode";
+import { AdminPanel } from "@/components/admin/AdminPanel";
 import { TIER_LABEL, type Tier } from "@/lib/tiers";
 
 interface Row {
