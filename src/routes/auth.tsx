@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Phone, Loader2, ArrowLeft, Shield, Zap, Users } from "lucide-react";
 import { toast } from "sonner";
 import { SwiftyLogo } from "@/components/SwiftyLogo";
+import { CountryPicker } from "@/components/auth/CountryPicker";
+import { DEFAULT_COUNTRY, isValidE164, toE164, type Country } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
@@ -17,7 +19,9 @@ function AuthPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<View>("welcome");
   const [prevView, setPrevView] = useState<View>("welcome");
+  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
+  const [e164, setE164] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -59,19 +63,21 @@ function AuthPage() {
   };
 
   const handleSendOtp = async () => {
-    const trimmed = phone.trim();
-    if (!/^\+[1-9]\d{6,14}$/.test(trimmed)) {
-      toast.error("Enter phone in E.164 format, e.g. +14155551234");
+    // Strip zeros/spaces/hyphens and merge with the selected dialling code.
+    const full = toE164(country.dial, phone);
+    if (!isValidE164(full)) {
+      toast.error(`Enter a valid ${country.name} phone number`);
       return;
     }
+    setE164(full);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: trimmed });
+    const { error } = await supabase.auth.signInWithOtp({ phone: full });
     setLoading(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("OTP sent");
+    toast.success(`OTP sent to ${full}`);
     goTo("otp");
   };
 
@@ -82,7 +88,7 @@ function AuthPage() {
     }
     setLoading(true);
     const { error } = await supabase.auth.verifyOtp({
-      phone: phone.trim(),
+      phone: e164 || toE164(country.dial, phone),
       token: otp.trim(),
       type: "sms",
     });
@@ -132,13 +138,15 @@ function AuthPage() {
             <PhoneView
               phone={phone}
               setPhone={setPhone}
+              country={country}
+              setCountry={setCountry}
               loading={loading}
               onSubmit={handleSendOtp}
             />
           )}
           {view === "otp" && (
             <OtpView
-              phone={phone}
+              phone={e164}
               otp={otp}
               setOtp={setOtp}
               loading={loading}
@@ -266,14 +274,19 @@ function MethodsView({
 function PhoneView({
   phone,
   setPhone,
+  country,
+  setCountry,
   loading,
   onSubmit,
 }: {
   phone: string;
   setPhone: (v: string) => void;
+  country: Country;
+  setCountry: (c: Country) => void;
   loading: boolean;
   onSubmit: () => void;
 }) {
+  const preview = toE164(country.dial, phone);
   return (
     <form
       onSubmit={(e) => {
@@ -293,18 +306,23 @@ function PhoneView({
           <label htmlFor="phone" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             Phone number
           </label>
-          <input
-            id="phone"
-            type="tel"
-            inputMode="tel"
-            autoFocus
-            placeholder="+1 415 555 1234"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="h-14 w-full rounded-2xl border border-border bg-card px-4 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
-          />
+          <div className="flex gap-2">
+            <CountryPicker value={country} onChange={setCountry} />
+            <input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoFocus
+              placeholder="812 552 2479"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="h-14 w-full min-w-0 flex-1 rounded-2xl border border-border bg-card px-4 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
           <p className="text-[11px] text-muted-foreground">
-            Include country code, e.g. +1 for US.
+            {phone.trim()
+              ? `We'll verify ${preview}`
+              : "Leading zeros, spaces and hyphens are removed automatically."}
           </p>
         </div>
       </div>

@@ -37,9 +37,10 @@ export function useProfile() {
     }
     setEmail(user.email ?? null);
 
-    // Session check for the automated 48-hour unfreeze.
+    // Session checks: automated 48-hour unfreeze + premium expiry.
     try {
       await supabase.rpc("process_my_freeze_appeal" as never);
+      await supabase.rpc("expire_my_tier" as never);
     } catch {
       /* non-fatal */
     }

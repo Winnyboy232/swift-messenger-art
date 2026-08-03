@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_memory: {
+        Row: {
+          created_at: string
+          id: string
+          memory_key: string
+          memory_value: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          memory_key: string
+          memory_value: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          memory_key?: string
+          memory_value?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage: {
+        Row: {
+          count: number
+          created_at: string
+          id: string
+          kind: string
+          updated_at: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind: string
+          updated_at?: string
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          updated_at?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       appeals: {
         Row: {
           created_at: string
@@ -68,6 +149,48 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          duration_months: number
+          id: string
+          is_redeemed: boolean
+          plan_tier: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          tier_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number
+          id?: string
+          is_redeemed?: boolean
+          plan_tier: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          tier_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number
+          id?: string
+          is_redeemed?: boolean
+          plan_tier?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          tier_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_id: string
@@ -116,6 +239,7 @@ export type Database = {
           spam_reports_count: number
           subscription_expires_at: string | null
           subscription_tier: string
+          tier_expires_at: string | null
           updated_at: string
         }
         Insert: {
@@ -132,6 +256,7 @@ export type Database = {
           spam_reports_count?: number
           subscription_expires_at?: string | null
           subscription_tier?: string
+          tier_expires_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -148,6 +273,7 @@ export type Database = {
           spam_reports_count?: number
           subscription_expires_at?: string | null
           subscription_tier?: string
+          tier_expires_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -335,9 +461,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_tier: {
+        Args: { _months?: number; _target: string; _tier: string }
+        Returns: boolean
+      }
+      admin_unfreeze: { Args: { _target: string }; Returns: boolean }
+      consume_ai_usage: {
+        Args: { _daily_limit: number; _kind: string; _monthly_limit?: number }
+        Returns: Json
+      }
+      expire_my_tier: { Args: never; Returns: boolean }
+      generate_gift_code: {
+        Args: { _duration_months: number; _plan_tier: string }
+        Returns: string
+      }
       is_spam_immune: { Args: { _user_id: string }; Returns: boolean }
+      is_swift_admin: { Args: { _user_id: string }; Returns: boolean }
       process_freeze_appeals: { Args: { _user_id: string }; Returns: boolean }
       process_my_freeze_appeal: { Args: never; Returns: boolean }
+      redeem_gift_code: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

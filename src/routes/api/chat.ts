@@ -6,13 +6,17 @@ const SYSTEM_PROMPT =
   "You are Swift AI, the built-in assistant of the Swift messaging app. " +
   "Be concise, friendly and helpful. Use markdown sparingly.";
 
-type ChatBody = { messages?: { role: "user" | "assistant"; content: string }[] };
+type ChatBody = {
+  messages?: { role: "user" | "assistant"; content: string }[];
+  memory?: string;
+  tier?: string;
+};
 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { messages } = (await request.json()) as ChatBody;
+        const { messages, memory, tier } = (await request.json()) as ChatBody;
         if (!Array.isArray(messages) || messages.length === 0) {
           return new Response("Messages are required", { status: 400 });
         }
@@ -21,12 +25,19 @@ export const Route = createFileRoute("/api/chat")({
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
         const gateway = createLovableAiGatewayProvider(key);
+        // Paid tiers get the stronger model; free stays on the fast one.
+        const modelId =
+          tier === "pro" || tier === "ultimate"
+            ? "google/gemini-3-pro-preview"
+            : "google/gemini-3.6-flash";
 
         let text: string;
         try {
           const result = await generateText({
-            model: gateway("google/gemini-3.6-flash"),
-            instructions: SYSTEM_PROMPT,
+            model: gateway(modelId),
+            instructions: memory
+              ? `${SYSTEM_PROMPT}\n\nRemembered facts about this user:\n${memory}`
+              : SYSTEM_PROMPT,
             messages: messages.map((m) => ({
               role: m.role,
               content: m.content,

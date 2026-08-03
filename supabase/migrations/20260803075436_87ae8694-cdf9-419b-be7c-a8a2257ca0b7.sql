@@ -1,0 +1,14 @@
+REVOKE EXECUTE ON FUNCTION public.generate_gift_code(text, integer) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.redeem_gift_code(text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.expire_my_tier() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_set_tier(uuid, text, integer) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_unfreeze(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.consume_ai_usage(text, integer, integer) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_swift_admin(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.process_my_freeze_appeal() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.process_freeze_appeals(uuid) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_spam_immune(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.update_updated_at_column() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.enforce_message_safety() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_spam_report() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated;

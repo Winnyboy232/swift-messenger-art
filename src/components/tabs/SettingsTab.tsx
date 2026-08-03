@@ -15,6 +15,8 @@ import {
   Loader2,
   Sparkles,
   ShoppingBag,
+  Gift,
+  TicketCheck,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,6 +26,9 @@ import { useProfile } from "@/hooks/useProfile";
 import { TierBadge } from "@/components/TierBadge";
 import { PremiumPlans } from "@/components/premium/PremiumPlans";
 import { SwiftStore } from "@/components/premium/SwiftStore";
+import { GiftPremium } from "@/components/premium/GiftPremium";
+import { RedeemCode } from "@/components/premium/RedeemCode";
+import { AdminPanel } from "@/components/admin/AdminPanel";
 import { TIER_LABEL, type Tier } from "@/lib/tiers";
 
 interface Row {
@@ -53,6 +58,9 @@ export function SettingsTab() {
   const [signingOut, setSigningOut] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [redeemOpen, setRedeemOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   const name = profile?.display_name || email?.split("@")[0] || profile?.phone || "Swift User";
   const avatarUrl = profile?.avatar_url ?? null;
@@ -169,6 +177,70 @@ export function SettingsTab() {
           </div>
           <ChevronRight size={16} className="text-muted-foreground" />
         </button>
+
+        <button
+          type="button"
+          onClick={() => setGiftOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "color-mix(in oklab, var(--swift-purple) 22%, transparent)" }}
+          >
+            <Gift size={16} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Gift Premium</p>
+            <p className="truncate text-xs text-muted-foreground">
+              Buy a plan for a friend & share a code
+            </p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setRedeemOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+        >
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "color-mix(in oklab, var(--swift-purple) 22%, transparent)" }}
+          >
+            <TicketCheck size={16} className="text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-foreground">Redeem Premium Code</p>
+            <p className="truncate text-xs text-muted-foreground">Activate a gifted plan</p>
+          </div>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </button>
+
+        {profile?.is_admin && (
+          <button
+            type="button"
+            onClick={() => setAdminOpen(true)}
+            className="flex w-full items-center gap-3 rounded-2xl border border-border p-3 text-left"
+            style={{
+              background:
+                "linear-gradient(160deg, color-mix(in oklab, var(--swift-blue) 18%, var(--card)) 0%, var(--card) 70%)",
+            }}
+          >
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-xl"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              <ShieldCheck size={16} className="text-primary-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">Admin Dashboard</p>
+              <p className="truncate text-xs text-muted-foreground">
+                Subscribers, tiers, unfreeze & gift codes
+              </p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
+        )}
       </div>
 
       <SettingsGroup rows={GROUP_1} />
@@ -216,6 +288,19 @@ export function SettingsTab() {
         credits={profile?.ai_credits ?? 0}
         onPurchased={() => void reload()}
       />
+      <GiftPremium
+        open={giftOpen}
+        onClose={() => setGiftOpen(false)}
+        email={email}
+        userId={profile?.id ?? null}
+        isAdmin={profile?.is_admin ?? false}
+      />
+      <RedeemCode
+        open={redeemOpen}
+        onClose={() => setRedeemOpen(false)}
+        onRedeemed={() => void reload()}
+      />
+      <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
     </div>
 
   );
