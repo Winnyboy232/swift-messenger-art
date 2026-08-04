@@ -155,6 +155,8 @@ function AuthPage() {
             <PhoneView
               phone={phone}
               setPhone={setPhone}
+              email={email}
+              setEmail={setEmail}
               country={country}
               setCountry={setCountry}
               loading={loading}
@@ -163,7 +165,7 @@ function AuthPage() {
           )}
           {view === "otp" && (
             <OtpView
-              phone={e164}
+              target={email}
               otp={otp}
               setOtp={setOtp}
               loading={loading}
@@ -171,6 +173,7 @@ function AuthPage() {
               onResend={handleSendOtp}
             />
           )}
+
         </div>
       </div>
     </div>
