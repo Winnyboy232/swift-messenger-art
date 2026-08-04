@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PencilLine } from "lucide-react";
-import swiftLogo from "@/assets/swifty-logo.png";
+import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
 
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
@@ -88,13 +88,7 @@ function Index() {
                   "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent), 0 0 24px -4px color-mix(in oklab, var(--swift-blue) 60%, transparent)",
               }}
             >
-              <img
-                src={swiftLogo}
-                alt=""
-                width={34}
-                height={34}
-                style={{ width: 34, height: 34 }}
-              />
+              <SwiftAIAvatar size={40} />
             </button>
           </div>
         )}

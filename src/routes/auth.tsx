@@ -18,9 +18,9 @@ type View = "welcome" | "methods" | "phone" | "otp";
 function AuthPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<View>("welcome");
-  const [prevView, setPrevView] = useState<View>("welcome");
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [e164, setE164] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,6 @@ function AuthPage() {
   }, [navigate]);
 
   const goTo = (next: View) => {
-    setPrevView(view);
     setView(next);
   };
 
@@ -69,37 +68,55 @@ function AuthPage() {
       toast.error(`Enter a valid ${country.name} phone number`);
       return;
     }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
     setE164(full);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: full });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(`OTP sent to ${full}`);
-    goTo("otp");
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length < 4) {
-      toast.error("Enter the code from your SMS");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.verifyOtp({
-      phone: e164 || toE164(country.dial, phone),
-      token: otp.trim(),
-      type: "sms",
+    // Verification happens by email; the phone number is stored on the profile.
+    const { error } = await supabase.auth.signInWithOtp({
+      email: cleanEmail,
+      options: { data: { phone: full } },
     });
     setLoading(false);
     if (error) {
       toast.error(error.message);
       return;
     }
+    toast.success(`Verification code sent to ${cleanEmail}`);
+    goTo("otp");
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length < 4) {
+      toast.error("Enter the code from your email");
+      return;
+    }
+    setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: otp.trim(),
+      type: "email",
+    });
+    if (error) {
+      setLoading(false);
+      toast.error(error.message);
+      return;
+    }
+    // Sync the phone number onto the profile after email verification.
+    const uid = data.user?.id;
+    const full = e164 || toE164(country.dial, phone);
+    if (uid) {
+      await supabase.from("profiles").update({ phone: full }).eq("id", uid);
+    }
+    setLoading(false);
     toast.success("Signed in");
     navigate({ to: "/", replace: true });
   };
+
 
   return (
     <div
@@ -138,6 +155,8 @@ function AuthPage() {
             <PhoneView
               phone={phone}
               setPhone={setPhone}
+              email={email}
+              setEmail={setEmail}
               country={country}
               setCountry={setCountry}
               loading={loading}
@@ -146,7 +165,7 @@ function AuthPage() {
           )}
           {view === "otp" && (
             <OtpView
-              phone={e164}
+              target={email}
               otp={otp}
               setOtp={setOtp}
               loading={loading}
@@ -154,6 +173,7 @@ function AuthPage() {
               onResend={handleSendOtp}
             />
           )}
+
         </div>
       </div>
     </div>
@@ -259,7 +279,7 @@ function MethodsView({
             className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 text-[15px] font-semibold text-foreground transition hover:bg-card/70 active:scale-[0.99] disabled:opacity-60"
           >
             <Phone size={18} className="text-primary" />
-            Continue with Phone Number
+            Continue with Email & Phone
           </button>
         </div>
       </div>
@@ -274,6 +294,8 @@ function MethodsView({
 function PhoneView({
   phone,
   setPhone,
+  email,
+  setEmail,
   country,
   setCountry,
   loading,
@@ -281,6 +303,8 @@ function PhoneView({
 }: {
   phone: string;
   setPhone: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
   country: Country;
   setCountry: (c: Country) => void;
   loading: boolean;
@@ -295,12 +319,28 @@ function PhoneView({
       }}
       className="flex flex-1 flex-col justify-between py-4"
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">What's your number?</h2>
+          <h2 className="text-2xl font-bold text-foreground">Set up your Swift account</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            We'll send a one-time code by SMS to verify it's you.
+            We'll email you a one-time code and link it to your phone number.
           </p>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoFocus
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-14 w-full rounded-2xl border border-border bg-card px-4 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+          />
         </div>
         <div className="space-y-2">
           <label htmlFor="phone" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -312,7 +352,6 @@ function PhoneView({
               id="phone"
               type="tel"
               inputMode="tel"
-              autoFocus
               placeholder="812 552 2479"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -321,7 +360,7 @@ function PhoneView({
           </div>
           <p className="text-[11px] text-muted-foreground">
             {phone.trim()
-              ? `We'll verify ${preview}`
+              ? `We'll save ${preview} to your profile`
               : "Leading zeros, spaces and hyphens are removed automatically."}
           </p>
         </div>
@@ -334,14 +373,14 @@ function PhoneView({
 }
 
 function OtpView({
-  phone,
+  target,
   otp,
   setOtp,
   loading,
   onSubmit,
   onResend,
 }: {
-  phone: string;
+  target: string;
   otp: string;
   setOtp: (v: string) => void;
   loading: boolean;
@@ -360,9 +399,10 @@ function OtpView({
         <div>
           <h2 className="text-2xl font-bold text-foreground">Enter verification code</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            We sent a 6-digit code to <span className="text-foreground">{phone}</span>.
+            We sent a 6-digit code to <span className="text-foreground">{target}</span>.
           </p>
         </div>
+
         <input
           id="otp"
           type="text"

@@ -1,9 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Send, Loader2, Sparkles, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Send, Loader2, Sparkles, Mic, MicOff, Volume2, VolumeX, Download, Share2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
+import { consumeUsage, needsWatermark } from "@/lib/aiLimits";
+import {
+  cleanPrompt,
+  detectMediaIntent,
+  downloadMedia,
+  encodeMedia,
+  generateImage,
+  parseMedia,
+  shareMedia,
+  signedUrl,
+} from "@/lib/aiMedia";
+import type { Tier } from "@/lib/tiers";
 
 export interface AiMessage {
   role: "user" | "assistant";
@@ -41,17 +53,19 @@ export function SwiftAIChat({ compact = false }: Props) {
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [listening, setListening] = useState(false);
   const [speak, setSpeak] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
-  const tier = profile?.subscription_tier ?? "free";
+  const tier = (profile?.subscription_tier ?? "free") as Tier;
   const memoryEnabled = profile?.is_admin || tier === "pro" || tier === "ultimate";
+  const busy = streaming || generating;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streaming]);
+  }, [messages, streaming, generating]);
 
   // Restore persisted conversation history.
   useEffect(() => {
@@ -99,15 +113,60 @@ export function SwiftAIChat({ compact = false }: Props) {
     return data.map((m) => `- ${m.memory_value}`).join("\n");
   }, [memoryEnabled]);
 
+  /** Image / video prompts are routed to the multimedia engines with credit tracking. */
+  const runMedia = async (kind: "image" | "video", text: string, base: AiMessage[]) => {
+    if (kind === "video") {
+      const notice =
+        "Video generation isn't switched on for Swift yet — it needs a video provider connected. Image generation is live, so try “generate an image of …”.";
+      setMessages([...base, { role: "assistant", content: notice }]);
+      void persist("assistant", notice);
+      return;
+    }
+    const usage = await consumeUsage(tier, "image");
+    if (!usage.ok) {
+      const msg =
+        usage.error === "limit_reached"
+          ? `You've reached your ${tier} plan image limit for today. Upgrade your plan or buy AI credits in the Swift Store.`
+          : (usage.error ?? "Could not start generation");
+      toast.error(msg);
+      setMessages([...base, { role: "assistant", content: msg }]);
+      void persist("assistant", msg);
+      return;
+    }
+    setGenerating(true);
+    try {
+      const prompt = cleanPrompt(text) || text;
+      const watermark = usage.watermark ?? needsWatermark(tier, profile?.is_admin ?? false);
+      const { path } = await generateImage(prompt, watermark);
+      const content = encodeMedia("image", path, prompt);
+      setMessages([...base, { role: "assistant", content }]);
+      void persist("assistant", content);
+      if (usage.usedCredit) toast.info("Used 1 AI credit from your balance");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Image generation failed";
+      toast.error(msg);
+      setMessages(base);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const send = async (override?: string) => {
     const text = (override ?? input).trim();
-    if (!text || streaming) return;
+    if (!text || busy) return;
     const next: AiMessage[] = [...messages, { role: "user", content: text }];
     setMessages(next);
     setInput("");
-    setStreaming(true);
     void persist("user", text);
     void captureMemory(text);
+
+    const intent = detectMediaIntent(text);
+    if (intent) {
+      await runMedia(intent, text, next);
+      return;
+    }
+
+    setStreaming(true);
     try {
       const memory = await loadMemory();
       const res = await fetch("/api/chat", {
@@ -188,7 +247,7 @@ export function SwiftAIChat({ compact = false }: Props) {
             <SwiftAIAvatar size={72} />
             <p className="mt-3 text-sm font-bold text-foreground">Ask Swift AI anything</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Free unlimited text chat for every Swift plan.
+              Free unlimited text chat — or say “generate an image of …”.
             </p>
             {memoryEnabled && (
               <p className="mt-1 text-[11px] text-primary">
@@ -197,20 +256,32 @@ export function SwiftAIChat({ compact = false }: Props) {
             )}
           </div>
         )}
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className="max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm"
-              style={
-                m.role === "user"
-                  ? { background: "var(--gradient-brand)", color: "var(--primary-foreground)" }
-                  : { background: "var(--card)", color: "var(--foreground)" }
-              }
-            >
-              {m.content || "…"}
+        {messages.map((m, i) => {
+          const media = m.role === "assistant" ? parseMedia(m.content) : null;
+          if (media?.kind === "image" && media.path) {
+            return <MediaCard key={i} path={media.path} caption={media.text} />;
+          }
+          return (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className="max-w-[80%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm"
+                style={
+                  m.role === "user"
+                    ? { background: "var(--gradient-brand)", color: "var(--primary-foreground)" }
+                    : { background: "var(--card)", color: "var(--foreground)" }
+                }
+              >
+                {m.content || "…"}
+              </div>
             </div>
+          );
+        })}
+        {generating && (
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3.5 py-3 text-xs text-muted-foreground">
+            <Loader2 size={14} className="animate-spin text-primary" />
+            Generating your image…
           </div>
-        ))}
+        )}
         {streaming && messages[messages.length - 1]?.content === "" && (
           <Loader2 size={14} className="animate-spin text-primary" />
         )}
@@ -263,13 +334,65 @@ export function SwiftAIChat({ compact = false }: Props) {
         <button
           type="button"
           aria-label="Send to Swift AI"
-          disabled={streaming || !input.trim()}
+          disabled={busy || !input.trim()}
           onClick={() => void send()}
           className="flex h-11 w-11 items-center justify-center rounded-full text-primary-foreground disabled:opacity-50"
           style={{ background: "var(--gradient-brand)" }}
         >
-          {streaming ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
+          {busy ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function MediaCard({ path, caption }: { path: string; caption: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const signed = await signedUrl(path);
+      if (!cancelled) setUrl(signed);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [path]);
+
+  return (
+    <div className="flex justify-start">
+      <div className="w-[80%] overflow-hidden rounded-2xl border border-border bg-card">
+        {url ? (
+          <img src={url} alt={caption || "Swift AI generated image"} className="w-full" />
+        ) : (
+          <div className="flex h-48 items-center justify-center text-muted-foreground">
+            <ImageIcon size={22} />
+          </div>
+        )}
+        <div className="flex items-center gap-2 px-3 py-2">
+          <p className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+            {caption || "Swift AI image"}
+          </p>
+          <button
+            type="button"
+            aria-label="Download image"
+            disabled={!url}
+            onClick={() => url && void downloadMedia(url, "swift-ai.png")}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-primary disabled:opacity-50"
+          >
+            <Download size={14} />
+          </button>
+          <button
+            type="button"
+            aria-label="Share image"
+            disabled={!url}
+            onClick={() => url && void shareMedia(url, caption)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-primary disabled:opacity-50"
+          >
+            <Share2 size={14} />
+          </button>
+        </div>
       </div>
     </div>
   );
