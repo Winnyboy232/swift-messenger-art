@@ -279,7 +279,7 @@ function MethodsView({
             className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 text-[15px] font-semibold text-foreground transition hover:bg-card/70 active:scale-[0.99] disabled:opacity-60"
           >
             <Phone size={18} className="text-primary" />
-            Continue with Phone Number
+            Continue with Email & Phone
           </button>
         </div>
       </div>

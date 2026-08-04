@@ -38,7 +38,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
 import { SwiftAIChat } from "@/components/ai/SwiftAIChat";
 import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
-import swiftLogo from "@/assets/swifty-logo.png";
 
 
 const searchSchema = z.object({
@@ -581,7 +580,7 @@ function ChatScreen() {
           boxShadow: "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent)",
         }}
       >
-        <img src={swiftLogo} alt="" width={30} height={30} style={{ width: 30, height: 30 }} />
+        <SwiftAIAvatar size={40} />
       </button>
 
       {aiOpen && (
