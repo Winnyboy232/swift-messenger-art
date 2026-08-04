@@ -294,6 +294,8 @@ function MethodsView({
 function PhoneView({
   phone,
   setPhone,
+  email,
+  setEmail,
   country,
   setCountry,
   loading,
@@ -301,6 +303,8 @@ function PhoneView({
 }: {
   phone: string;
   setPhone: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
   country: Country;
   setCountry: (c: Country) => void;
   loading: boolean;
@@ -315,12 +319,28 @@ function PhoneView({
       }}
       className="flex flex-1 flex-col justify-between py-4"
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">What's your number?</h2>
+          <h2 className="text-2xl font-bold text-foreground">Set up your Swift account</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            We'll send a one-time code by SMS to verify it's you.
+            We'll email you a one-time code and link it to your phone number.
           </p>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoFocus
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-14 w-full rounded-2xl border border-border bg-card px-4 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+          />
         </div>
         <div className="space-y-2">
           <label htmlFor="phone" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -332,7 +352,6 @@ function PhoneView({
               id="phone"
               type="tel"
               inputMode="tel"
-              autoFocus
               placeholder="812 552 2479"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -341,7 +360,7 @@ function PhoneView({
           </div>
           <p className="text-[11px] text-muted-foreground">
             {phone.trim()
-              ? `We'll verify ${preview}`
+              ? `We'll save ${preview} to your profile`
               : "Leading zeros, spaces and hyphens are removed automatically."}
           </p>
         </div>
@@ -354,14 +373,14 @@ function PhoneView({
 }
 
 function OtpView({
-  phone,
+  target,
   otp,
   setOtp,
   loading,
   onSubmit,
   onResend,
 }: {
-  phone: string;
+  target: string;
   otp: string;
   setOtp: (v: string) => void;
   loading: boolean;
@@ -380,9 +399,10 @@ function OtpView({
         <div>
           <h2 className="text-2xl font-bold text-foreground">Enter verification code</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            We sent a 6-digit code to <span className="text-foreground">{phone}</span>.
+            We sent a 6-digit code to <span className="text-foreground">{target}</span>.
           </p>
         </div>
+
         <input
           id="otp"
           type="text"
