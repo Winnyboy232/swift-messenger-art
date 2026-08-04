@@ -35,21 +35,22 @@ interface Row {
   icon: LucideIcon;
   title: string;
   subtitle: string;
+  detail?: string;
 }
 
 const GROUP_1: Row[] = [
-  { icon: Bell, title: "Notifications", subtitle: "Message, group & call tones" },
-  { icon: Lock, title: "Privacy", subtitle: "Block contacts, disappearing messages" },
-  { icon: ShieldCheck, title: "Security", subtitle: "Two-step verification, change number" },
-  { icon: MessageSquare, title: "Chats", subtitle: "Theme, wallpapers, chat history" },
-  { icon: Palette, title: "Appearance", subtitle: "Dark mode, accent colors" },
-  { icon: Languages, title: "Language", subtitle: "English (US)" },
-  { icon: Database, title: "Storage & Data", subtitle: "Network usage, auto-download" },
+  { icon: Bell, title: "Notifications", subtitle: "Message, group & call tones", detail: "Choose how Swift alerts you. Message, group and call tones follow your device notification settings — manage them from your phone\u2019s system settings for Swift." },
+  { icon: Lock, title: "Privacy", subtitle: "Block contacts, disappearing messages", detail: "Blocked contacts are managed from each chat\u2019s menu. Swift never shares your phone number or email with other users without permission." },
+  { icon: ShieldCheck, title: "Security", subtitle: "Two-step verification, change number", detail: "Your account is protected by one-time email verification, and every conversation is stored securely in your private Swift cloud backup." },
+  { icon: MessageSquare, title: "Chats", subtitle: "Theme, wallpapers, chat history", detail: "Chat history is backed up automatically. Clear an individual conversation from its three-dot menu inside the chat." },
+  { icon: Palette, title: "Appearance", subtitle: "Dark mode, accent colors", detail: "Swift uses its signature electric blue and deep purple dark theme across every screen for comfortable night-time reading." },
+  { icon: Languages, title: "Language", subtitle: "English (US)", detail: "Swift currently speaks English (US). Swift AI understands and replies in most major languages \u2014 just write to it in yours." },
+  { icon: Database, title: "Storage & Data", subtitle: "Network usage, auto-download", detail: "Photos, videos and voice notes are uploaded to your private cloud backup and streamed on demand, so they never fill up your device." },
 ];
 
 const GROUP_2: Row[] = [
-  { icon: HelpCircle, title: "Help & Support", subtitle: "Help center, contact us" },
-  { icon: Info, title: "About Swift", subtitle: "Version 1.0.0" },
+  { icon: HelpCircle, title: "Help & Support", subtitle: "Help center, contact us", detail: "Need a hand? Ask Swift AI Assistant \u2014 it can walk you through any feature, or help you appeal an account freeze." },
+  { icon: Info, title: "About Swift", subtitle: "Version 1.0.0", detail: "Swift \u2014 Fast. Secure. Connected. Version 1.0.0. Built with Swift AI, premium plans, status updates and encrypted cloud backups." },
 ];
 
 export function SettingsTab() {
@@ -61,6 +62,10 @@ export function SettingsTab() {
   const [giftOpen, setGiftOpen] = useState(false);
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [detail, setDetail] = useState<Row | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   const name = profile?.display_name || email?.split("@")[0] || profile?.phone || "Swift User";
   const avatarUrl = profile?.avatar_url ?? null;
@@ -108,7 +113,10 @@ export function SettingsTab() {
           <button
             type="button"
             aria-label="Change photo"
-            onClick={() => toast.info("Photo editing coming soon")}
+            onClick={() => {
+              setDraftName(profile?.display_name ?? name);
+              setEditOpen(true);
+            }}
             className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-background text-primary-foreground"
             style={{ background: "var(--gradient-brand)" }}
           >
@@ -127,7 +135,10 @@ export function SettingsTab() {
         </div>
         <button
           type="button"
-          onClick={() => toast.info("Edit profile coming soon")}
+          onClick={() => {
+            setDraftName(profile?.display_name ?? name);
+            setEditOpen(true);
+          }}
           className="flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-card/70"
         >
           Edit
@@ -243,9 +254,9 @@ export function SettingsTab() {
         )}
       </div>
 
-      <SettingsGroup rows={GROUP_1} />
+      <SettingsGroup rows={GROUP_1} onSelect={setDetail} />
       <div className="h-4" />
-      <SettingsGroup rows={GROUP_2} />
+      <SettingsGroup rows={GROUP_2} onSelect={setDetail} />
       <div className="h-4" />
 
 
@@ -301,19 +312,101 @@ export function SettingsTab() {
         onRedeemed={() => void reload()}
       />
       <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
+
+      {detail && (
+        <Sheet title={detail.title} onClose={() => setDetail(null)}>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {detail.detail ?? detail.subtitle}
+          </p>
+        </Sheet>
+      )}
+
+      {editOpen && (
+        <Sheet title="Edit profile" onClose={() => setEditOpen(false)}>
+          <label
+            htmlFor="display-name"
+            className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          >
+            Display name
+          </label>
+          <input
+            id="display-name"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            className="mt-2 h-12 w-full rounded-2xl border border-border bg-card px-4 text-[15px] text-foreground outline-none focus:border-primary"
+          />
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {email || phone || "Signed in to Swift"}
+          </p>
+          <button
+            type="button"
+            disabled={savingName || !draftName.trim()}
+            onClick={async () => {
+              if (!profile?.id) return;
+              setSavingName(true);
+              const { error } = await supabase
+                .from("profiles")
+                .update({ display_name: draftName.trim() })
+                .eq("id", profile.id);
+              setSavingName(false);
+              if (error) {
+                toast.error(error.message);
+                return;
+              }
+              toast.success("Profile updated");
+              setEditOpen(false);
+              void reload();
+            }}
+            className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl text-[15px] font-semibold text-primary-foreground disabled:opacity-60"
+            style={{ background: "var(--gradient-brand)" }}
+          >
+            {savingName ? <Loader2 size={17} className="animate-spin" /> : "Save changes"}
+          </button>
+        </Sheet>
+      )}
     </div>
 
   );
 }
 
-function SettingsGroup({ rows }: { rows: Row[] }) {
+function Sheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60">
+      <button type="button" aria-label="Close" className="flex-1" onClick={onClose} />
+      <div className="mx-auto w-full max-w-md rounded-t-3xl border-t border-border bg-background p-5 pb-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-foreground">{title}</h3>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="text-sm font-semibold text-muted-foreground"
+          >
+            Done
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SettingsGroup({ rows, onSelect }: { rows: Row[]; onSelect: (row: Row) => void }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       {rows.map((row, i) => (
         <button
           key={row.title}
           type="button"
-          onClick={() => toast.info(`${row.title} coming soon`)}
+          onClick={() => onSelect(row)}
           className={`flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-card/60 ${
             i !== rows.length - 1 ? "border-b border-border/60" : ""
           }`}
