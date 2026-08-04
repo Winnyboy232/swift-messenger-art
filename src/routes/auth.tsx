@@ -18,9 +18,9 @@ type View = "welcome" | "methods" | "phone" | "otp";
 function AuthPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<View>("welcome");
-  const [prevView, setPrevView] = useState<View>("welcome");
   const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [e164, setE164] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,6 @@ function AuthPage() {
   }, [navigate]);
 
   const goTo = (next: View) => {
-    setPrevView(view);
     setView(next);
   };
 
@@ -69,37 +68,55 @@ function AuthPage() {
       toast.error(`Enter a valid ${country.name} phone number`);
       return;
     }
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
     setE164(full);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: full });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(`OTP sent to ${full}`);
-    goTo("otp");
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length < 4) {
-      toast.error("Enter the code from your SMS");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.verifyOtp({
-      phone: e164 || toE164(country.dial, phone),
-      token: otp.trim(),
-      type: "sms",
+    // Verification happens by email; the phone number is stored on the profile.
+    const { error } = await supabase.auth.signInWithOtp({
+      email: cleanEmail,
+      options: { data: { phone: full } },
     });
     setLoading(false);
     if (error) {
       toast.error(error.message);
       return;
     }
+    toast.success(`Verification code sent to ${cleanEmail}`);
+    goTo("otp");
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length < 4) {
+      toast.error("Enter the code from your email");
+      return;
+    }
+    setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: otp.trim(),
+      type: "email",
+    });
+    if (error) {
+      setLoading(false);
+      toast.error(error.message);
+      return;
+    }
+    // Sync the phone number onto the profile after email verification.
+    const uid = data.user?.id;
+    const full = e164 || toE164(country.dial, phone);
+    if (uid) {
+      await supabase.from("profiles").update({ phone: full }).eq("id", uid);
+    }
+    setLoading(false);
     toast.success("Signed in");
     navigate({ to: "/", replace: true });
   };
+
 
   return (
     <div
