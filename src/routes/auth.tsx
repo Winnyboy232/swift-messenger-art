@@ -1,45 +1,64 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Phone, Loader2, ArrowLeft, Shield, Zap, Users } from "lucide-react";
+import { ArrowRight, Mail, Loader2, ArrowLeft, Shield, Zap, Users, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { SwiftyLogo } from "@/components/SwiftyLogo";
-import { CountryPicker } from "@/components/auth/CountryPicker";
-import { DEFAULT_COUNTRY, isValidE164, toE164, type Country } from "@/lib/phone";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { rememberAccount } from "@/lib/accounts";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({
+    add: search["add"] === true || search["add"] === "true" ? true : undefined,
+  }),
   component: AuthPage,
 });
 
-type View = "welcome" | "methods" | "phone" | "otp";
+type View = "welcome" | "methods" | "email";
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [view, setView] = useState<View>("welcome");
-  const [country, setCountry] = useState<Country>(DEFAULT_COUNTRY);
-  const [phone, setPhone] = useState("");
+  const { add } = Route.useSearch();
+  const addingAccount = add === true;
+  const [view, setView] = useState<View>(addingAccount ? "methods" : "welcome");
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState("");
-  const [e164, setE164] = useState("");
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Bounce if already signed in
+  // Bounce if already signed in (unless deliberately adding another account)
   useEffect(() => {
+    if (addingAccount) return;
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/", replace: true });
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
-        navigate({ to: "/", replace: true });
-      }
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, addingAccount]);
 
-  const goTo = (next: View) => {
-    setView(next);
+  const afterAuth = async () => {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session) return;
+    const user = session.user;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("display_name, phone, onboarded, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    rememberAccount({
+      userId: user.id,
+      email: user.email ?? "",
+      name:
+        (profile as { display_name?: string | null } | null)?.display_name ||
+        user.email?.split("@")[0] ||
+        "Swift user",
+      avatarUrl: (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null,
+      accessToken: session.access_token,
+      refreshToken: session.refresh_token,
+    });
+    const done = (profile as { onboarded?: boolean } | null)?.onboarded === true;
+    navigate({ to: done ? "/" : "/onboarding", replace: true });
   };
 
   const handleGoogle = async () => {
@@ -54,69 +73,54 @@ function AuthPage() {
         return;
       }
       if (res.redirected) return;
-      navigate({ to: "/", replace: true });
+      await afterAuth();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Google sign in failed");
       setLoading(false);
     }
   };
 
-  const handleSendOtp = async () => {
-    // Strip zeros/spaces/hyphens and merge with the selected dialling code.
-    const full = toE164(country.dial, phone);
-    if (!isValidE164(full)) {
-      toast.error(`Enter a valid ${country.name} phone number`);
-      return;
-    }
+  const handleSubmit = async () => {
     const cleanEmail = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       toast.error("Enter a valid email address");
       return;
     }
-    setE164(full);
-    setLoading(true);
-    // Verification happens by email; the phone number is stored on the profile.
-    const { error } = await supabase.auth.signInWithOtp({
-      email: cleanEmail,
-      options: { data: { phone: full } },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(`Verification code sent to ${cleanEmail}`);
-    goTo("otp");
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp.length < 4) {
-      toast.error("Enter the code from your email");
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
     setLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: cleanEmail,
-      token: otp.trim(),
-      type: "email",
-    });
-    if (error) {
-      setLoading(false);
-      toast.error(error.message);
-      return;
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: { emailRedirectTo: window.location.origin },
+      });
+      if (error) {
+        setLoading(false);
+        if (error.message.toLowerCase().includes("already")) {
+          toast.error("That email already has an account — sign in instead");
+          setMode("signin");
+          return;
+        }
+        toast.error(error.message);
+        return;
+      }
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+      if (error) {
+        setLoading(false);
+        toast.error(error.message);
+        return;
+      }
     }
-    // Sync the phone number onto the profile after email verification.
-    const uid = data.user?.id;
-    const full = e164 || toE164(country.dial, phone);
-    if (uid) {
-      await supabase.from("profiles").update({ phone: full }).eq("id", uid);
-    }
+    await afterAuth();
     setLoading(false);
-    toast.success("Signed in");
-    navigate({ to: "/", replace: true });
   };
-
 
   return (
     <div
@@ -134,7 +138,7 @@ function AuthPage() {
         {view !== "welcome" && (
           <button
             type="button"
-            onClick={() => goTo(view === "otp" ? "phone" : view === "phone" ? "methods" : "welcome")}
+            onClick={() => setView(view === "email" ? "methods" : "welcome")}
             className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-card hover:text-foreground"
             aria-label="Back"
           >
@@ -143,37 +147,32 @@ function AuthPage() {
         )}
 
         <div key={view} className="flex flex-1 flex-col animate-in fade-in slide-in-from-right-4 duration-300">
-          {view === "welcome" && <WelcomeView onProceed={() => goTo("methods")} />}
+          {view === "welcome" && <WelcomeView onProceed={() => setView("methods")} />}
           {view === "methods" && (
             <MethodsView
               loading={loading}
+              addingAccount={addingAccount}
               onGoogle={handleGoogle}
-              onPhone={() => goTo("phone")}
+              onEmail={(m) => {
+                setMode(m);
+                setView("email");
+              }}
             />
           )}
-          {view === "phone" && (
-            <PhoneView
-              phone={phone}
-              setPhone={setPhone}
+          {view === "email" && (
+            <EmailView
+              mode={mode}
+              setMode={setMode}
               email={email}
               setEmail={setEmail}
-              country={country}
-              setCountry={setCountry}
+              password={password}
+              setPassword={setPassword}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
               loading={loading}
-              onSubmit={handleSendOtp}
+              onSubmit={handleSubmit}
             />
           )}
-          {view === "otp" && (
-            <OtpView
-              target={email}
-              otp={otp}
-              setOtp={setOtp}
-              loading={loading}
-              onSubmit={handleVerifyOtp}
-              onResend={handleSendOtp}
-            />
-          )}
-
         </div>
       </div>
     </div>
@@ -202,9 +201,7 @@ function WelcomeView({ onProceed }: { onProceed: () => void }) {
           >
             Swift
           </h1>
-          <p className="text-base font-semibold text-foreground">
-            Fast. Secure. Connected.
-          </p>
+          <p className="text-base font-semibold text-foreground">Fast. Secure. Connected.</p>
           <p className="mx-auto max-w-xs text-sm leading-relaxed text-muted-foreground">
             Connect with friends, share moments, and discover what's happening around the world.
           </p>
@@ -241,12 +238,14 @@ function WelcomeView({ onProceed }: { onProceed: () => void }) {
 
 function MethodsView({
   loading,
+  addingAccount,
   onGoogle,
-  onPhone,
+  onEmail,
 }: {
   loading: boolean;
+  addingAccount: boolean;
   onGoogle: () => void;
-  onPhone: () => void;
+  onEmail: (mode: "signup" | "signin") => void;
 }) {
   return (
     <div className="flex flex-1 flex-col justify-between py-4">
@@ -254,10 +253,10 @@ function MethodsView({
         <div className="flex flex-col items-center gap-4 text-center">
           <SwiftyLogo size={72} />
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Sign in to Swift</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Choose how you'd like to continue.
-            </p>
+            <h2 className="text-2xl font-bold text-foreground">
+              {addingAccount ? "Add another account" : "Sign in to Swift"}
+            </h2>
+            <p className="mt-1.5 text-sm text-muted-foreground">Choose how you'd like to continue.</p>
           </div>
         </div>
 
@@ -275,11 +274,21 @@ function MethodsView({
           <button
             type="button"
             disabled={loading}
-            onClick={onPhone}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 text-[15px] font-semibold text-foreground transition hover:bg-card/70 active:scale-[0.99] disabled:opacity-60"
+            onClick={() => onEmail("signup")}
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl px-4 text-[15px] font-semibold text-primary-foreground transition active:scale-[0.99] disabled:opacity-60"
+            style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}
           >
-            <Phone size={18} className="text-primary" />
-            Continue with Email & Phone
+            <Mail size={18} />
+            Sign up with Email
+          </button>
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => onEmail("signin")}
+            className="flex h-12 w-full items-center justify-center text-sm font-semibold text-primary"
+          >
+            I already have an account
           </button>
         </div>
       </div>
@@ -291,26 +300,29 @@ function MethodsView({
   );
 }
 
-function PhoneView({
-  phone,
-  setPhone,
+function EmailView({
+  mode,
+  setMode,
   email,
   setEmail,
-  country,
-  setCountry,
+  password,
+  setPassword,
+  showPassword,
+  setShowPassword,
   loading,
   onSubmit,
 }: {
-  phone: string;
-  setPhone: (v: string) => void;
+  mode: "signup" | "signin";
+  setMode: (m: "signup" | "signin") => void;
   email: string;
   setEmail: (v: string) => void;
-  country: Country;
-  setCountry: (c: Country) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  showPassword: boolean;
+  setShowPassword: (v: boolean) => void;
   loading: boolean;
   onSubmit: () => void;
 }) {
-  const preview = toE164(country.dial, phone);
   return (
     <form
       onSubmit={(e) => {
@@ -321,13 +333,17 @@ function PhoneView({
     >
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Set up your Swift account</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            {mode === "signup" ? "Create your Swift account" : "Welcome back"}
+          </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            We'll email you a one-time code and link it to your phone number.
+            {mode === "signup"
+              ? "Just an email and password — no codes to wait for."
+              : "Sign in with your email and password."}
           </p>
         </div>
         <div className="space-y-2">
-          <label htmlFor="email" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          <label htmlFor="email" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Email address
           </label>
           <input
@@ -343,89 +359,45 @@ function PhoneView({
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="phone" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Phone number
+          <label htmlFor="password" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Password
           </label>
-          <div className="flex gap-2">
-            <CountryPicker value={country} onChange={setCountry} />
+          <div className="relative">
             <input
-              id="phone"
-              type="tel"
-              inputMode="tel"
-              placeholder="812 552 2479"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="h-14 w-full min-w-0 flex-1 rounded-2xl border border-border bg-card px-4 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              placeholder="At least 6 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-14 w-full rounded-2xl border border-border bg-card px-4 pr-12 text-[16px] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
             />
+            <button
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            {phone.trim()
-              ? `We'll save ${preview} to your profile`
-              : "Leading zeros, spaces and hyphens are removed automatically."}
-          </p>
         </div>
-      </div>
-      <PrimaryButton disabled={loading} type="submit">
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <>Send OTP Code <ArrowRight size={18} /></>}
-      </PrimaryButton>
-    </form>
-  );
-}
-
-function OtpView({
-  target,
-  otp,
-  setOtp,
-  loading,
-  onSubmit,
-  onResend,
-}: {
-  target: string;
-  otp: string;
-  setOtp: (v: string) => void;
-  loading: boolean;
-  onSubmit: () => void;
-  onResend: () => void;
-}) {
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit();
-      }}
-      className="flex flex-1 flex-col justify-between py-4"
-    >
-      <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Enter verification code</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            We sent a 6-digit code to <span className="text-foreground">{target}</span>.
-          </p>
-        </div>
-
-        <input
-          id="otp"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          autoFocus
-          maxLength={6}
-          placeholder="••••••"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          className="h-16 w-full rounded-2xl border border-border bg-card px-4 text-center text-2xl font-semibold tracking-[0.5em] text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
-        />
         <button
           type="button"
-          onClick={onResend}
-          disabled={loading}
-          className="text-xs font-medium text-primary hover:underline disabled:opacity-60"
+          onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+          className="text-xs font-semibold text-primary hover:underline"
         >
-          Resend code
+          {mode === "signup" ? "Already have an account? Sign in" : "New to Swift? Create an account"}
         </button>
       </div>
       <PrimaryButton disabled={loading} type="submit">
-        {loading ? <Loader2 size={18} className="animate-spin" /> : <>Verify &amp; Continue <ArrowRight size={18} /></>}
+        {loading ? (
+          <Loader2 size={18} className="animate-spin" />
+        ) : (
+          <>
+            Continue <ArrowRight size={18} />
+          </>
+        )}
       </PrimaryButton>
     </form>
   );
