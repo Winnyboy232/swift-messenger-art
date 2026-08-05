@@ -187,36 +187,6 @@ function Overlay({
   );
 }
 
-function SheetRow({
-  icon: Icon,
-  title,
-  subtitle,
-  onClick,
-}: {
-  icon: typeof Sparkles;
-  title: string;
-  subtitle: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left active:scale-[0.99]"
-    >
-      <span
-        className="flex h-9 w-9 items-center justify-center rounded-xl"
-        style={{ background: "var(--gradient-brand)" }}
-      >
-        <Icon size={16} className="text-primary-foreground" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-foreground">{title}</span>
-        <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
-      </span>
-    </button>
-  );
-}
 
 function HeaderIconButton({
   children,
