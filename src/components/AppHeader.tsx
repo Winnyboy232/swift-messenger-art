@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Search, Plus, X, Sparkles, HeartPulse, ImagePlus, ShoppingBag, UserPlus, Users } from "lucide-react";
+import { Search, Plus, X, Sparkles, HeartPulse, ImagePlus, ShoppingBag } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { SwiftyLogo } from "./SwiftyLogo";
+import { NewChatSheet } from "./NewChatSheet";
 import { placeholderChats } from "@/components/tabs/ChatsTab";
+
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -150,39 +152,8 @@ export function AppHeader() {
         </Overlay>
       )}
 
-      {newOpen && (
-        <Overlay title="New" onClose={() => setNewOpen(false)}>
-          <div className="space-y-2">
-            <SheetRow
-              icon={Sparkles}
-              title="Chat with Swift AI"
-              subtitle="Instant answers and image generation"
-              onClick={() => {
-                setNewOpen(false);
-                navigate({ to: "/ai" });
-              }}
-            />
-            <SheetRow
-              icon={UserPlus}
-              title="New chat"
-              subtitle="Pick someone from your contacts"
-              onClick={() => {
-                setNewOpen(false);
-                toast.info("Choose a contact from the Contacts tab");
-              }}
-            />
-            <SheetRow
-              icon={Users}
-              title="New group"
-              subtitle="Start a group conversation"
-              onClick={() => {
-                setNewOpen(false);
-                toast.info("Groups are coming soon");
-              }}
-            />
-          </div>
-        </Overlay>
-      )}
+      <NewChatSheet open={newOpen} onClose={() => setNewOpen(false)} />
+
     </>
   );
 }
@@ -216,36 +187,6 @@ function Overlay({
   );
 }
 
-function SheetRow({
-  icon: Icon,
-  title,
-  subtitle,
-  onClick,
-}: {
-  icon: typeof Sparkles;
-  title: string;
-  subtitle: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left active:scale-[0.99]"
-    >
-      <span
-        className="flex h-9 w-9 items-center justify-center rounded-xl"
-        style={{ background: "var(--gradient-brand)" }}
-      >
-        <Icon size={16} className="text-primary-foreground" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-foreground">{title}</span>
-        <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
-      </span>
-    </button>
-  );
-}
 
 function HeaderIconButton({
   children,

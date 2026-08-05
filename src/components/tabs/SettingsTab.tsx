@@ -17,6 +17,8 @@ import {
   ShoppingBag,
   Gift,
   TicketCheck,
+  Users,
+
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -29,29 +31,33 @@ import { SwiftStore } from "@/components/premium/SwiftStore";
 import { GiftPremium } from "@/components/premium/GiftPremium";
 import { RedeemCode } from "@/components/premium/RedeemCode";
 import { AdminPanel } from "@/components/admin/AdminPanel";
+import { SettingsPage, type SettingsPageKey } from "@/components/settings/SettingsPage";
+import { AccountsSheet } from "@/components/settings/AccountsSheet";
 import { TIER_LABEL, type Tier } from "@/lib/tiers";
+
 
 interface Row {
   icon: LucideIcon;
   title: string;
   subtitle: string;
-  detail?: string;
+  page: SettingsPageKey;
 }
 
 const GROUP_1: Row[] = [
-  { icon: Bell, title: "Notifications", subtitle: "Message, group & call tones", detail: "Choose how Swift alerts you. Message, group and call tones follow your device notification settings — manage them from your phone\u2019s system settings for Swift." },
-  { icon: Lock, title: "Privacy", subtitle: "Block contacts, disappearing messages", detail: "Blocked contacts are managed from each chat\u2019s menu. Swift never shares your phone number or email with other users without permission." },
-  { icon: ShieldCheck, title: "Security", subtitle: "Two-step verification, change number", detail: "Your account is protected by one-time email verification, and every conversation is stored securely in your private Swift cloud backup." },
-  { icon: MessageSquare, title: "Chats", subtitle: "Theme, wallpapers, chat history", detail: "Chat history is backed up automatically. Clear an individual conversation from its three-dot menu inside the chat." },
-  { icon: Palette, title: "Appearance", subtitle: "Dark mode, accent colors", detail: "Swift uses its signature electric blue and deep purple dark theme across every screen for comfortable night-time reading." },
-  { icon: Languages, title: "Language", subtitle: "English (US)", detail: "Swift currently speaks English (US). Swift AI understands and replies in most major languages \u2014 just write to it in yours." },
-  { icon: Database, title: "Storage & Data", subtitle: "Network usage, auto-download", detail: "Photos, videos and voice notes are uploaded to your private cloud backup and streamed on demand, so they never fill up your device." },
+  { icon: Bell, title: "Notifications", subtitle: "Message, group & call tones", page: "notifications" },
+  { icon: Lock, title: "Privacy", subtitle: "Block contacts, disappearing messages", page: "privacy" },
+  { icon: ShieldCheck, title: "Security", subtitle: "Two-step verification, app lock", page: "security" },
+  { icon: MessageSquare, title: "Chats", subtitle: "Theme, wallpapers, chat history", page: "chats" },
+  { icon: Palette, title: "Appearance", subtitle: "Dark mode, accent colors", page: "appearance" },
+  { icon: Languages, title: "Language", subtitle: "English (US)", page: "language" },
+  { icon: Database, title: "Storage & Data", subtitle: "Network usage, auto-download", page: "storage" },
 ];
 
 const GROUP_2: Row[] = [
-  { icon: HelpCircle, title: "Help & Support", subtitle: "Help center, contact us", detail: "Need a hand? Ask Swift AI Assistant \u2014 it can walk you through any feature, or help you appeal an account freeze." },
-  { icon: Info, title: "About Swift", subtitle: "Version 1.0.0", detail: "Swift \u2014 Fast. Secure. Connected. Version 1.0.0. Built with Swift AI, premium plans, status updates and encrypted cloud backups." },
+  { icon: HelpCircle, title: "Help & Support", subtitle: "Help center, contact us", page: "help" },
+  { icon: Info, title: "About Swift", subtitle: "Version 1.0.0", page: "about" },
 ];
+
 
 export function SettingsTab() {
   const navigate = useNavigate();
@@ -63,6 +69,8 @@ export function SettingsTab() {
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [detail, setDetail] = useState<Row | null>(null);
+  const [accountsOpen, setAccountsOpen] = useState(false);
+
   const [editOpen, setEditOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [savingName, setSavingName] = useState(false);
@@ -254,7 +262,26 @@ export function SettingsTab() {
         )}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setAccountsOpen(true)}
+        className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+      >
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl"
+          style={{ background: "color-mix(in oklab, var(--swift-blue) 22%, transparent)" }}
+        >
+          <Users size={16} className="text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">Switch / Add Account</p>
+          <p className="truncate text-xs text-muted-foreground">Manage accounts on this device</p>
+        </div>
+        <ChevronRight size={16} className="text-muted-foreground" />
+      </button>
+
       <SettingsGroup rows={GROUP_1} onSelect={setDetail} />
+
       <div className="h-4" />
       <SettingsGroup rows={GROUP_2} onSelect={setDetail} />
       <div className="h-4" />
@@ -313,13 +340,13 @@ export function SettingsTab() {
       />
       <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
 
-      {detail && (
-        <Sheet title={detail.title} onClose={() => setDetail(null)}>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {detail.detail ?? detail.subtitle}
-          </p>
-        </Sheet>
-      )}
+      {detail && <SettingsPage pageKey={detail.page} onClose={() => setDetail(null)} />}
+      <AccountsSheet
+        open={accountsOpen}
+        onClose={() => setAccountsOpen(false)}
+        currentUserId={profile?.id ?? null}
+      />
+
 
       {editOpen && (
         <Sheet title="Edit profile" onClose={() => setEditOpen(false)}>

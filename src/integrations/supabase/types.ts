@@ -235,6 +235,8 @@ export type Database = {
           is_admin: boolean
           is_frozen: boolean
           is_suspended: boolean
+          nickname: string | null
+          onboarded: boolean
           phone: string | null
           spam_reports_count: number
           subscription_expires_at: string | null
@@ -252,6 +254,8 @@ export type Database = {
           is_admin?: boolean
           is_frozen?: boolean
           is_suspended?: boolean
+          nickname?: string | null
+          onboarded?: boolean
           phone?: string | null
           spam_reports_count?: number
           subscription_expires_at?: string | null
@@ -269,6 +273,8 @@ export type Database = {
           is_admin?: boolean
           is_frozen?: boolean
           is_suspended?: boolean
+          nickname?: string | null
+          onboarded?: boolean
           phone?: string | null
           spam_reports_count?: number
           subscription_expires_at?: string | null
@@ -477,6 +483,7 @@ export type Database = {
       }
       is_spam_immune: { Args: { _user_id: string }; Returns: boolean }
       is_swift_admin: { Args: { _user_id: string }; Returns: boolean }
+      phone_account_slots: { Args: { _phone: string }; Returns: number }
       process_freeze_appeals: { Args: { _user_id: string }; Returns: boolean }
       process_my_freeze_appeal: { Args: never; Returns: boolean }
       redeem_gift_code: { Args: { _code: string }; Returns: Json }

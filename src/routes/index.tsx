@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PencilLine } from "lucide-react";
-import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
 
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
@@ -9,10 +8,12 @@ import { ChatsTab } from "@/components/tabs/ChatsTab";
 import { UpdatesTab } from "@/components/tabs/UpdatesTab";
 import { ContactsTab } from "@/components/tabs/ContactsTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
+import { NewChatSheet } from "@/components/NewChatSheet";
 import { Splash } from "@/components/Splash";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -25,6 +26,8 @@ function Index() {
   const [tab, setTab] = useState<TabId>("chats");
   const [checking, setChecking] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [newOpen, setNewOpen] = useState(false);
+
   const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
   const isFrozen = !!profile?.is_frozen && !isImmune;
 
@@ -69,29 +72,24 @@ function Index() {
           {tab === "settings" && <SettingsTab />}
         </main>
         {tab === "chats" && (
-          <div className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30 flex flex-col items-end gap-3">
+          <div className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30">
             <button
               type="button"
-              aria-label="New message"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground transition active:scale-95"
-            >
-              <PencilLine size={19} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              aria-label="Chat with Swift AI"
-              onClick={() => navigate({ to: "/ai" })}
-              className="flex h-16 w-16 items-center justify-center rounded-full transition active:scale-95"
+              aria-label="New chat"
+              onClick={() => setNewOpen(true)}
+              className="flex h-14 w-14 items-center justify-center rounded-full text-primary-foreground transition active:scale-95"
               style={{
                 background: "var(--gradient-brand)",
                 boxShadow:
                   "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent), 0 0 24px -4px color-mix(in oklab, var(--swift-blue) 60%, transparent)",
               }}
             >
-              <SwiftAIAvatar size={40} />
+              <PencilLine size={21} strokeWidth={2.2} />
             </button>
           </div>
         )}
+        <NewChatSheet open={newOpen} onClose={() => setNewOpen(false)} />
+
 
       </div>
       {isFrozen && profile && (

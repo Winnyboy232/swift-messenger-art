@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as HeartRouteImport } from './routes/heart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AiRouteImport } from './routes/ai'
@@ -17,6 +18,11 @@ import { Route as ChatChatIdRouteImport } from './routes/chat.$chatId'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HeartRoute = HeartRouteImport.update({
   id: '/heart',
   path: '/heart',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/heart': typeof HeartRoute
+  '/onboarding': typeof OnboardingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/chat/$chatId': typeof ChatChatIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/heart': typeof HeartRoute
+  '/onboarding': typeof OnboardingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/chat/$chatId': typeof ChatChatIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/ai': typeof AiRoute
   '/auth': typeof AuthRoute
   '/heart': typeof HeartRoute
+  '/onboarding': typeof OnboardingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/chat/$chatId': typeof ChatChatIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/heart'
+    | '/onboarding'
     | '/api/chat'
     | '/api/generate-image'
     | '/chat/$chatId'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/heart'
+    | '/onboarding'
     | '/api/chat'
     | '/api/generate-image'
     | '/chat/$chatId'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/auth'
     | '/heart'
+    | '/onboarding'
     | '/api/chat'
     | '/api/generate-image'
     | '/chat/$chatId'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AiRoute: typeof AiRoute
   AuthRoute: typeof AuthRoute
   HeartRoute: typeof HeartRoute
+  OnboardingRoute: typeof OnboardingRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
   ChatChatIdRoute: typeof ChatChatIdRoute
@@ -123,6 +136,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/heart': {
       id: '/heart'
       path: '/heart'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiRoute: AiRoute,
   AuthRoute: AuthRoute,
   HeartRoute: HeartRoute,
+  OnboardingRoute: OnboardingRoute,
   ApiChatRoute: ApiChatRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
   ChatChatIdRoute: ChatChatIdRoute,
