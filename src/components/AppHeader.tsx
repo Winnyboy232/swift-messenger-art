@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Search, Plus, X, Sparkles, HeartPulse, ImagePlus, ShoppingBag, UserPlus, Users } from "lucide-react";
+import { Search, Plus, X, Sparkles, HeartPulse, ImagePlus, ShoppingBag } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { SwiftyLogo } from "./SwiftyLogo";
+import { NewChatSheet } from "./NewChatSheet";
 import { placeholderChats } from "@/components/tabs/ChatsTab";
+
 
 export function AppHeader() {
   const navigate = useNavigate();
