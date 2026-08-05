@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PencilLine } from "lucide-react";
-import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
 
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav, type TabId } from "@/components/BottomNav";
@@ -9,10 +8,12 @@ import { ChatsTab } from "@/components/tabs/ChatsTab";
 import { UpdatesTab } from "@/components/tabs/UpdatesTab";
 import { ContactsTab } from "@/components/tabs/ContactsTab";
 import { SettingsTab } from "@/components/tabs/SettingsTab";
+import { NewChatSheet } from "@/components/NewChatSheet";
 import { Splash } from "@/components/Splash";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { FreezeOverlay } from "@/components/premium/FreezeOverlay";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
