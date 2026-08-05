@@ -26,6 +26,8 @@ function Index() {
   const [tab, setTab] = useState<TabId>("chats");
   const [checking, setChecking] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [newOpen, setNewOpen] = useState(false);
+
   const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
   const isFrozen = !!profile?.is_frozen && !isImmune;
 
