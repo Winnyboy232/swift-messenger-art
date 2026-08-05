@@ -17,6 +17,8 @@ import {
   ShoppingBag,
   Gift,
   TicketCheck,
+  Users,
+
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
