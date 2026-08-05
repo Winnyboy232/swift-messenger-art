@@ -70,29 +70,24 @@ function Index() {
           {tab === "settings" && <SettingsTab />}
         </main>
         {tab === "chats" && (
-          <div className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30 flex flex-col items-end gap-3">
+          <div className="fixed bottom-24 right-[max(1rem,calc((100vw-28rem)/2+1rem))] z-30">
             <button
               type="button"
-              aria-label="New message"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-foreground transition active:scale-95"
-            >
-              <PencilLine size={19} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              aria-label="Chat with Swift AI"
-              onClick={() => navigate({ to: "/ai" })}
-              className="flex h-16 w-16 items-center justify-center rounded-full transition active:scale-95"
+              aria-label="New chat"
+              onClick={() => setNewOpen(true)}
+              className="flex h-14 w-14 items-center justify-center rounded-full text-primary-foreground transition active:scale-95"
               style={{
                 background: "var(--gradient-brand)",
                 boxShadow:
                   "0 10px 30px -8px color-mix(in oklab, var(--swift-purple) 70%, transparent), 0 0 24px -4px color-mix(in oklab, var(--swift-blue) 60%, transparent)",
               }}
             >
-              <SwiftAIAvatar size={40} />
+              <PencilLine size={21} strokeWidth={2.2} />
             </button>
           </div>
         )}
+        <NewChatSheet open={newOpen} onClose={() => setNewOpen(false)} />
+
 
       </div>
       {isFrozen && profile && (
