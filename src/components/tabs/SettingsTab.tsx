@@ -67,6 +67,8 @@ export function SettingsTab() {
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [detail, setDetail] = useState<Row | null>(null);
+  const [accountsOpen, setAccountsOpen] = useState(false);
+
   const [editOpen, setEditOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [savingName, setSavingName] = useState(false);
