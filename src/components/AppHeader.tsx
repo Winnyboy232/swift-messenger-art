@@ -150,39 +150,8 @@ export function AppHeader() {
         </Overlay>
       )}
 
-      {newOpen && (
-        <Overlay title="New" onClose={() => setNewOpen(false)}>
-          <div className="space-y-2">
-            <SheetRow
-              icon={Sparkles}
-              title="Chat with Swift AI"
-              subtitle="Instant answers and image generation"
-              onClick={() => {
-                setNewOpen(false);
-                navigate({ to: "/ai" });
-              }}
-            />
-            <SheetRow
-              icon={UserPlus}
-              title="New chat"
-              subtitle="Pick someone from your contacts"
-              onClick={() => {
-                setNewOpen(false);
-                toast.info("Choose a contact from the Contacts tab");
-              }}
-            />
-            <SheetRow
-              icon={Users}
-              title="New group"
-              subtitle="Start a group conversation"
-              onClick={() => {
-                setNewOpen(false);
-                toast.info("Groups are coming soon");
-              }}
-            />
-          </div>
-        </Overlay>
-      )}
+      <NewChatSheet open={newOpen} onClose={() => setNewOpen(false)} />
+
     </>
   );
 }
