@@ -29,7 +29,10 @@ import { SwiftStore } from "@/components/premium/SwiftStore";
 import { GiftPremium } from "@/components/premium/GiftPremium";
 import { RedeemCode } from "@/components/premium/RedeemCode";
 import { AdminPanel } from "@/components/admin/AdminPanel";
+import { SettingsPage, type SettingsPageKey } from "@/components/settings/SettingsPage";
+import { AccountsSheet } from "@/components/settings/AccountsSheet";
 import { TIER_LABEL, type Tier } from "@/lib/tiers";
+
 
 interface Row {
   icon: LucideIcon;
