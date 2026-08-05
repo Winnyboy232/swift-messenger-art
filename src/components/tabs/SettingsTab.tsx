@@ -260,7 +260,26 @@ export function SettingsTab() {
         )}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setAccountsOpen(true)}
+        className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+      >
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl"
+          style={{ background: "color-mix(in oklab, var(--swift-blue) 22%, transparent)" }}
+        >
+          <Users size={16} className="text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-foreground">Switch / Add Account</p>
+          <p className="truncate text-xs text-muted-foreground">Manage accounts on this device</p>
+        </div>
+        <ChevronRight size={16} className="text-muted-foreground" />
+      </button>
+
       <SettingsGroup rows={GROUP_1} onSelect={setDetail} />
+
       <div className="h-4" />
       <SettingsGroup rows={GROUP_2} onSelect={setDetail} />
       <div className="h-4" />
