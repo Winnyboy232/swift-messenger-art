@@ -317,13 +317,13 @@ export function SettingsTab() {
       />
       <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
 
-      {detail && (
-        <Sheet title={detail.title} onClose={() => setDetail(null)}>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {detail.detail ?? detail.subtitle}
-          </p>
-        </Sheet>
-      )}
+      {detail && <SettingsPage pageKey={detail.page} onClose={() => setDetail(null)} />}
+      <AccountsSheet
+        open={accountsOpen}
+        onClose={() => setAccountsOpen(false)}
+        currentUserId={profile?.id ?? null}
+      />
+
 
       {editOpen && (
         <Sheet title="Edit profile" onClose={() => setEditOpen(false)}>
