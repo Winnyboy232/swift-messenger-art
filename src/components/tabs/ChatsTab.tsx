@@ -1,8 +1,10 @@
-import { Search, Pin } from "lucide-react";
+import { Search, Pin, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { TierBadge } from "@/components/TierBadge";
 import { SwiftAIAvatar } from "@/components/ai/SwiftAIAvatar";
 import { CONTACT_TIERS } from "@/lib/tiers";
+import { useLocalChats, memberSummary } from "@/lib/localChats";
+
 
 
 export const placeholderChats = [

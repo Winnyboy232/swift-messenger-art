@@ -3,6 +3,8 @@ import { X, Search, UserPlus, Users, Check, ArrowLeft, Camera, Loader2 } from "l
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { placeholderChats } from "@/components/tabs/ChatsTab";
+import { saveLocalChat } from "@/lib/localChats";
+
 
 interface Person {
   id: string;
