@@ -585,6 +585,57 @@ function ChatScreen() {
       )}
 
       {call && <CallOverlay kind={call} name={name} initials={initials} onClose={() => setCall(null)} />}
+
+      {infoOpen && isGroup && localChat && (
+        <GroupInfo
+          chat={localChat}
+          media={messages
+            .filter((m) => m.media_url)
+            .slice(-12)
+            .map((m) => ({
+              id: m.id,
+              url: m.signedMediaUrl,
+              type: m.media_type,
+              time: formatTime(m.created_at),
+            }))}
+          onClose={() => setInfoOpen(false)}
+          onCall={(kind) => {
+            setInfoOpen(false);
+            startCall(kind);
+          }}
+          onClearChat={() => {
+            setInfoOpen(false);
+            setConfirmClear(true);
+          }}
+          onExit={() => {
+            removeLocalChat(chatId);
+            toast.success("You left the group");
+            void navigate({ to: "/" });
+          }}
+        />
+      )}
+
+      {infoOpen && !isGroup && (
+        <ContactInfo
+          name={name}
+          initials={initials}
+          phone={localChat?.members?.[0]?.phone ?? null}
+          links={messages
+            .filter((m) => m.content && /https?:\/\//.test(m.content))
+            .slice(-10)
+            .map((m) => ({
+              id: m.id,
+              url: (m.content ?? "").match(/https?:\/\/\S+/)?.[0] ?? "",
+              time: formatTime(m.created_at),
+            }))}
+          onClose={() => setInfoOpen(false)}
+          onCall={(kind) => {
+            setInfoOpen(false);
+            startCall(kind);
+          }}
+        />
+      )}
+
       <button
         type="button"
         aria-label="Ask Swift AI"
