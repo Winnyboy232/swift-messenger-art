@@ -470,14 +470,24 @@ function ChatScreen() {
                 {g.label}
               </span>
             </div>
-            {g.items.map((m) => (
-              <MessageBubble
-                key={m.id}
-                msg={m}
-                reaction={reactions[m.id]}
-                onReact={(emoji) => toggleReaction(m.id, emoji)}
-              />
-            ))}
+            {g.items.map((m, idx) => {
+              const member = isGroup
+                ? (localChat?.members?.[idx % Math.max(1, localChat.members.length)] ?? null)
+                : null;
+              return (
+                <MessageBubble
+                  key={m.id}
+                  msg={m}
+                  reaction={reactions[m.id]}
+                  onReact={(emoji) => toggleReaction(m.id, emoji)}
+                  senderName={member?.name ?? null}
+                  senderPhone={member?.phone ?? null}
+                  senderInitials={member?.initials ?? null}
+                  isGroup={isGroup}
+                />
+              );
+            })}
+
           </div>
         ))}
       </div>
