@@ -829,21 +829,45 @@ function MessageBubble({
   msg,
   reaction,
   onReact,
+  senderName = null,
+  senderPhone = null,
+  senderInitials = null,
+  isGroup = false,
 }: {
   msg: DisplayMessage;
   reaction?: string;
   onReact: (emoji: string) => void;
+  senderName?: string | null;
+  senderPhone?: string | null;
+  senderInitials?: string | null;
+  isGroup?: boolean;
 }) {
   const mine = msg.sender === "me";
   const [showPicker, setShowPicker] = useState(false);
   const isFile = msg.media_type === "file";
   const filename = isFile && msg.content ? msg.content.split("|")[0] : null;
   const filesize = isFile && msg.content ? Number(msg.content.split("|")[1] || 0) : 0;
+  const showSender = isGroup && !mine && !!senderName;
 
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+    <div className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+      {showSender && (
+        <span
+          className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-primary-foreground"
+          style={{ background: "var(--gradient-brand)" }}
+        >
+          {senderInitials ?? senderName?.[0]}
+        </span>
+      )}
       <div className="relative max-w-[80%]">
+        {showSender && (
+          <p className="mb-0.5 truncate px-1 text-[11px] font-semibold text-primary">
+            ~ {senderName}
+            {senderPhone ? ` ${senderPhone}` : ""}
+          </p>
+        )}
         <button
+
           type="button"
           onDoubleClick={() => onReact("❤️")}
           onContextMenu={(e) => {
