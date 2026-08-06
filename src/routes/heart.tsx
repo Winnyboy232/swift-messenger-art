@@ -43,6 +43,8 @@ function HeartRoute() {
   const [scanning, setScanning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [bpm, setBpm] = useState<number | null>(null);
+  const [estimated, setEstimated] = useState(false);
+
 
   useEffect(() => () => stopCamera(), []);
 
