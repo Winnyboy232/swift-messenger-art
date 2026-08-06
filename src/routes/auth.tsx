@@ -9,9 +9,9 @@ import { rememberAccount } from "@/lib/accounts";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    add: search["add"] === true || search["add"] === "true" ? true : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { add?: boolean } =>
+    search["add"] === true || search["add"] === "true" ? { add: true } : {},
+
   component: AuthPage,
 });
 
