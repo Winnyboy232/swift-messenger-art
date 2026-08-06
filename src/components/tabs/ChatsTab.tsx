@@ -17,8 +17,10 @@ export const placeholderChats = [
 ];
 
 export function ChatsTab() {
+  const { chats: localChats } = useLocalChats();
   return (
     <div>
+
       <div className="px-4 pt-5 pb-3">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">Chats</h2>
         <div className="mt-3 flex h-11 items-center gap-2 rounded-full border border-border bg-card px-4">
