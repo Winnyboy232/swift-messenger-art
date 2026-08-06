@@ -185,8 +185,16 @@ function HeartRoute() {
           stopCamera();
           setScanning(false);
           const result = estimate();
-          if (result) setBpm(result);
-          else toast.error("Couldn't read a steady pulse — cover the camera and try again.");
+          if (result) {
+            setBpm(result);
+            setEstimated(false);
+          } else {
+            const fb = fallbackEstimate();
+            setBpm(fb.value);
+            setEstimated(true);
+            toast("Weak signal — showing an estimated reading. Cover the lens fully for accuracy.");
+          }
+
           return;
         }
         rafRef.current = requestAnimationFrame(loop);
