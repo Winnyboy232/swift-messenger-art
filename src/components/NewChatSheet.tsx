@@ -236,21 +236,40 @@ export function NewChatSheet({ open, onClose }: { open: boolean; onClose: () => 
                 disabled={!groupName.trim() || creating}
                 onClick={() => {
                   setCreating(true);
-                  const id = `group-${groupName.trim().toLowerCase().replace(/\s+/g, "-")}`;
-                  const initials = groupName
-                    .trim()
+                  const label = groupName.trim();
+                  const id = `group-${label.toLowerCase().replace(/\s+/g, "-")}-${Date.now()
+                    .toString(36)
+                    .slice(-4)}`;
+                  const initials = label
                     .split(/\s+/)
                     .map((w) => w[0])
                     .slice(0, 2)
                     .join("")
                     .toUpperCase();
-                  toast.success(`${groupName.trim()} created with ${selected.length} members`);
+                  const members = selected.map((sid) => {
+                    const p = PEOPLE.find((x) => x.id === sid);
+                    return {
+                      id: sid,
+                      name: p?.name ?? sid,
+                      initials: p?.initials ?? "?",
+                    };
+                  });
+                  saveLocalChat({
+                    id,
+                    name: label,
+                    initials,
+                    isGroup: true,
+                    members,
+                    avatar,
+                    createdAt: new Date().toISOString(),
+                  });
+                  toast.success(`${label} created with ${members.length} members`);
                   close();
                   setCreating(false);
                   navigate({
                     to: "/chat/$chatId",
                     params: { chatId: id },
-                    search: { name: groupName.trim(), initials },
+                    search: { name: label, initials },
                   });
                 }}
                 className="flex h-13 w-full items-center justify-center rounded-2xl py-4 text-[15px] font-semibold text-primary-foreground disabled:opacity-50"
@@ -258,6 +277,7 @@ export function NewChatSheet({ open, onClose }: { open: boolean; onClose: () => 
               >
                 {creating ? <Loader2 size={17} className="animate-spin" /> : "Create group"}
               </button>
+
             </div>
           )}
         </div>
