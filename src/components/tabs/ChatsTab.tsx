@@ -56,7 +56,53 @@ export function ChatsTab() {
           </p>
         </div>
       </Link>
+      {localChats.length > 0 && (
+        <ul className="divide-y divide-border border-b border-border">
+          {localChats.map((chat) => (
+            <li key={chat.id}>
+              <Link
+                to="/chat/$chatId"
+                params={{ chatId: chat.id }}
+                search={{ name: chat.name, initials: chat.initials }}
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-card/60 active:bg-card"
+              >
+                <span
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-semibold text-primary-foreground"
+                  style={{ background: "var(--gradient-brand)" }}
+                >
+                  {chat.avatar ? (
+                    <img src={chat.avatar} alt={chat.name} className="h-full w-full object-cover" />
+                  ) : (
+                    chat.initials
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <p className="truncate text-[15px] font-semibold text-foreground">
+                        {chat.name}
+                      </p>
+                      {chat.isGroup && <Users size={12} className="shrink-0 text-primary" />}
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {new Date(chat.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                    {chat.isGroup ? memberSummary(chat.members) : "Tap to start chatting"}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
       <ul className="divide-y divide-border">
+
+
 
         {placeholderChats.map((chat) => (
           <li key={chat.id}>
