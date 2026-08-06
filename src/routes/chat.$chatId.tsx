@@ -85,6 +85,10 @@ function ChatScreen() {
   const [uploading, setUploading] = useState(false);
   const [call, setCall] = useState<null | "audio" | "video">(null);
   const [aiOpen, setAiOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const localChat = useMemo(() => getLocalChat(chatId), [chatId]);
+  const isGroup = !!localChat?.isGroup;
+
 
   const { profile, reload: reloadProfile } = useProfile();
   const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
