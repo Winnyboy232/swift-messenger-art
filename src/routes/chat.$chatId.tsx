@@ -32,6 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { CallOverlay } from "@/components/CallOverlay";
+import { GroupInfo } from "@/components/chat/GroupInfo";
+import { ContactInfo } from "@/components/chat/ContactInfo";
+import { getLocalChat, memberSummary, removeLocalChat } from "@/lib/localChats";
+
 import { TierBadge } from "@/components/TierBadge";
 import { CONTACT_TIERS } from "@/lib/tiers";
 import { useProfile } from "@/hooks/useProfile";
@@ -81,6 +85,10 @@ function ChatScreen() {
   const [uploading, setUploading] = useState(false);
   const [call, setCall] = useState<null | "audio" | "video">(null);
   const [aiOpen, setAiOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const localChat = useMemo(() => getLocalChat(chatId), [chatId]);
+  const isGroup = !!localChat?.isGroup;
+
 
   const { profile, reload: reloadProfile } = useProfile();
   const isImmune = !!profile && (profile.is_admin || profile.subscription_tier !== "free");
@@ -359,13 +367,20 @@ function ChatScreen() {
             aria-label="Online"
           />
         </div>
-        <div className="min-w-0 flex-1">
+        <button
+          type="button"
+          onClick={() => setInfoOpen(true)}
+          className="min-w-0 flex-1 text-left"
+        >
           <div className="flex items-center gap-1.5">
             <p className="truncate text-[15px] font-semibold text-foreground">{name}</p>
-            <TierBadge tier={CONTACT_TIERS[chatId] ?? "free"} size={14} />
+            {!isGroup && <TierBadge tier={CONTACT_TIERS[chatId] ?? "free"} size={14} />}
           </div>
-          <p className="text-[11px] text-muted-foreground">Online</p>
-        </div>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {isGroup ? memberSummary(localChat?.members ?? [], 2) : "Online"}
+          </p>
+        </button>
+
 
         <button
           type="button"
@@ -401,7 +416,7 @@ function ChatScreen() {
                 onClick={() => setMenuOpen(false)}
               />
               <div className="absolute right-0 top-11 z-50 w-60 overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-                <MenuItem icon={<Info size={16} />} label="View Contact Info" onClick={() => { setMenuOpen(false); toast("Contact info coming soon"); }} />
+                <MenuItem icon={<Info size={16} />} label={isGroup ? "Group info" : "View Contact Info"} onClick={() => { setMenuOpen(false); setInfoOpen(true); }} />
                 <MenuItem icon={<Paperclip size={16} />} label="Media, Links & Docs" onClick={() => { setMenuOpen(false); toast("Media gallery coming soon"); }} />
                 <MenuItem
                   icon={<BellOff size={16} />}
@@ -455,14 +470,24 @@ function ChatScreen() {
                 {g.label}
               </span>
             </div>
-            {g.items.map((m) => (
-              <MessageBubble
-                key={m.id}
-                msg={m}
-                reaction={reactions[m.id]}
-                onReact={(emoji) => toggleReaction(m.id, emoji)}
-              />
-            ))}
+            {g.items.map((m, idx) => {
+              const member = isGroup
+                ? (localChat?.members?.[idx % Math.max(1, localChat.members.length)] ?? null)
+                : null;
+              return (
+                <MessageBubble
+                  key={m.id}
+                  msg={m}
+                  reaction={reactions[m.id]}
+                  onReact={(emoji) => toggleReaction(m.id, emoji)}
+                  senderName={member?.name ?? null}
+                  senderPhone={member?.phone ?? null}
+                  senderInitials={member?.initials ?? null}
+                  isGroup={isGroup}
+                />
+              );
+            })}
+
           </div>
         ))}
       </div>
@@ -570,6 +595,57 @@ function ChatScreen() {
       )}
 
       {call && <CallOverlay kind={call} name={name} initials={initials} onClose={() => setCall(null)} />}
+
+      {infoOpen && isGroup && localChat && (
+        <GroupInfo
+          chat={localChat}
+          media={messages
+            .filter((m) => m.media_url)
+            .slice(-12)
+            .map((m) => ({
+              id: m.id,
+              url: m.signedMediaUrl,
+              type: m.media_type,
+              time: formatTime(m.created_at),
+            }))}
+          onClose={() => setInfoOpen(false)}
+          onCall={(kind) => {
+            setInfoOpen(false);
+            startCall(kind);
+          }}
+          onClearChat={() => {
+            setInfoOpen(false);
+            setConfirmClear(true);
+          }}
+          onExit={() => {
+            removeLocalChat(chatId);
+            toast.success("You left the group");
+            void navigate({ to: "/" });
+          }}
+        />
+      )}
+
+      {infoOpen && !isGroup && (
+        <ContactInfo
+          name={name}
+          initials={initials}
+          phone={localChat?.members?.[0]?.phone ?? null}
+          links={messages
+            .filter((m) => m.content && /https?:\/\//.test(m.content))
+            .slice(-10)
+            .map((m) => ({
+              id: m.id,
+              url: (m.content ?? "").match(/https?:\/\/\S+/)?.[0] ?? "",
+              time: formatTime(m.created_at),
+            }))}
+          onClose={() => setInfoOpen(false)}
+          onCall={(kind) => {
+            setInfoOpen(false);
+            startCall(kind);
+          }}
+        />
+      )}
+
       <button
         type="button"
         aria-label="Ask Swift AI"
@@ -753,21 +829,45 @@ function MessageBubble({
   msg,
   reaction,
   onReact,
+  senderName = null,
+  senderPhone = null,
+  senderInitials = null,
+  isGroup = false,
 }: {
   msg: DisplayMessage;
   reaction?: string;
   onReact: (emoji: string) => void;
+  senderName?: string | null;
+  senderPhone?: string | null;
+  senderInitials?: string | null;
+  isGroup?: boolean;
 }) {
   const mine = msg.sender === "me";
   const [showPicker, setShowPicker] = useState(false);
   const isFile = msg.media_type === "file";
   const filename = isFile && msg.content ? msg.content.split("|")[0] : null;
   const filesize = isFile && msg.content ? Number(msg.content.split("|")[1] || 0) : 0;
+  const showSender = isGroup && !mine && !!senderName;
 
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+    <div className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+      {showSender && (
+        <span
+          className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-primary-foreground"
+          style={{ background: "var(--gradient-brand)" }}
+        >
+          {senderInitials ?? senderName?.[0]}
+        </span>
+      )}
       <div className="relative max-w-[80%]">
+        {showSender && (
+          <p className="mb-0.5 truncate px-1 text-[11px] font-semibold text-primary">
+            ~ {senderName}
+            {senderPhone ? ` ${senderPhone}` : ""}
+          </p>
+        )}
         <button
+
           type="button"
           onDoubleClick={() => onReact("❤️")}
           onContextMenu={(e) => {

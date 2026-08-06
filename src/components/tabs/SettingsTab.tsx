@@ -135,12 +135,25 @@ export function SettingsTab() {
           <div className="flex items-center gap-1.5">
             <p className="truncate text-base font-bold text-foreground">{name}</p>
             <TierBadge tier={tier} size={16} />
+            {profile?.is_admin && (
+              <span
+                className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-primary-foreground"
+                style={{ background: "var(--gradient-brand)" }}
+              >
+                Admin
+              </span>
+            )}
           </div>
           <p className="truncate text-xs text-muted-foreground">{email || phone || ""}</p>
           <p className="mt-0.5 text-[11px] font-semibold text-primary">
-            {profile?.is_admin ? "Owner · Ultimate" : `${TIER_LABEL[tier]} plan`}
+            {profile?.is_lifetime
+              ? "Lifetime Ultimate · Owner"
+              : profile?.is_admin
+                ? "Owner · Ultimate"
+                : `${TIER_LABEL[tier]} plan`}
           </p>
         </div>
+
         <button
           type="button"
           onClick={() => {
