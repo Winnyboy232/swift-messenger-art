@@ -236,7 +236,10 @@ function HeartRoute() {
             {bpm ? (
               <div>
                 <p className="text-5xl font-extrabold text-foreground">{bpm}</p>
-                <p className="text-xs font-semibold text-muted-foreground">BPM</p>
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {estimated ? "BPM · estimated" : "BPM"}
+                </p>
+
               </div>
             ) : (
               <HeartPulse
