@@ -416,7 +416,7 @@ function ChatScreen() {
                 onClick={() => setMenuOpen(false)}
               />
               <div className="absolute right-0 top-11 z-50 w-60 overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
-                <MenuItem icon={<Info size={16} />} label="View Contact Info" onClick={() => { setMenuOpen(false); toast("Contact info coming soon"); }} />
+                <MenuItem icon={<Info size={16} />} label={isGroup ? "Group info" : "View Contact Info"} onClick={() => { setMenuOpen(false); setInfoOpen(true); }} />
                 <MenuItem icon={<Paperclip size={16} />} label="Media, Links & Docs" onClick={() => { setMenuOpen(false); toast("Media gallery coming soon"); }} />
                 <MenuItem
                   icon={<BellOff size={16} />}
