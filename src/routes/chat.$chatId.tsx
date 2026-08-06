@@ -32,6 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { CallOverlay } from "@/components/CallOverlay";
+import { GroupInfo } from "@/components/chat/GroupInfo";
+import { ContactInfo } from "@/components/chat/ContactInfo";
+import { getLocalChat, memberSummary, removeLocalChat } from "@/lib/localChats";
+
 import { TierBadge } from "@/components/TierBadge";
 import { CONTACT_TIERS } from "@/lib/tiers";
 import { useProfile } from "@/hooks/useProfile";
