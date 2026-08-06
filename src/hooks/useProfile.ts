@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isOwnerIdentity } from "@/lib/adminOverride";
 import type { Tier } from "@/lib/tiers";
 
 export interface SwiftProfile {
@@ -9,18 +10,11 @@ export interface SwiftProfile {
   phone: string | null;
   subscription_tier: Tier;
   is_admin: boolean;
+  is_lifetime: boolean;
   is_frozen: boolean;
   is_suspended: boolean;
   ai_credits: number;
 }
-
-const OWNER_PHONES = [
-  "+2348125522479",
-  "+2347078863274",
-  "07078863274",
-  "2347078863274",
-  "2348125522479",
-];
 
 export function useProfile() {
   const [profile, setProfile] = useState<SwiftProfile | null>(null);
@@ -35,7 +29,8 @@ export function useProfile() {
       setLoading(false);
       return;
     }
-    setEmail(user.email ?? null);
+    const userEmail = user.email ?? null;
+    setEmail(userEmail);
 
     // Session checks: automated 48-hour unfreeze + premium expiry.
     try {
@@ -45,13 +40,8 @@ export function useProfile() {
       /* non-fatal */
     }
 
-    const phone = user.phone ?? (user.user_metadata?.["phone"] as string | undefined) ?? null;
-    if (phone && OWNER_PHONES.includes(phone)) {
-      await supabase
-        .from("profiles")
-        .update({ is_admin: true, subscription_tier: "ultimate", is_frozen: false })
-        .eq("id", user.id);
-    }
+    const authPhone =
+      user.phone ?? (user.user_metadata?.["phone"] as string | undefined) ?? null;
 
     const { data } = await supabase
       .from("profiles")
@@ -61,7 +51,42 @@ export function useProfile() {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (data) setProfile(data as unknown as SwiftProfile);
+    const row = (data ?? null) as unknown as Omit<SwiftProfile, "is_lifetime"> | null;
+    const phone = row?.phone ?? authPhone;
+    const owner = isOwnerIdentity(userEmail, phone);
+
+    if (owner && row && (!row.is_admin || row.subscription_tier !== "ultimate")) {
+      // Best-effort DB sync; the UI is already unlocked locally regardless.
+      void supabase
+        .from("profiles")
+        .update({ is_admin: true, subscription_tier: "ultimate", is_frozen: false })
+        .eq("id", user.id);
+    }
+
+    if (row) {
+      setProfile({
+        ...row,
+        phone,
+        subscription_tier: owner ? "ultimate" : row.subscription_tier,
+        is_admin: owner || row.is_admin,
+        is_lifetime: owner,
+        is_frozen: owner ? false : row.is_frozen,
+        is_suspended: owner ? false : row.is_suspended,
+      });
+    } else if (owner) {
+      setProfile({
+        id: user.id,
+        display_name: (user.user_metadata?.["full_name"] as string) ?? null,
+        avatar_url: null,
+        phone,
+        subscription_tier: "ultimate",
+        is_admin: true,
+        is_lifetime: true,
+        is_frozen: false,
+        is_suspended: false,
+        ai_credits: 0,
+      });
+    }
     setLoading(false);
   }, []);
 

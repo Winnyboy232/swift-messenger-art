@@ -54,7 +54,15 @@ export function needsWatermark(tier: Tier, isAdmin: boolean): boolean {
  * Reserves one unit of an AI feature for the signed-in user.
  * Falls back to purchased store credits when the tier allowance is exhausted.
  */
-export async function consumeUsage(tier: Tier, kind: UsageKind): Promise<UsageResult> {
+export async function consumeUsage(
+  tier: Tier,
+  kind: UsageKind,
+  unlimited = false,
+): Promise<UsageResult> {
+  // Pro/Ultimate (incl. lifetime owner override) never hit the quota ledger.
+  if (unlimited || tier === "pro" || tier === "ultimate") {
+    return { ok: true, unlimited: true, watermark: false };
+  }
   const limit = TIER_LIMITS[tier][kind];
   const { data, error } = await supabase.rpc("consume_ai_usage" as never, {
     _kind: kind,
@@ -64,3 +72,4 @@ export async function consumeUsage(tier: Tier, kind: UsageKind): Promise<UsageRe
   if (error) return { ok: false, error: error.message };
   return (data ?? { ok: false, error: "Unknown error" }) as unknown as UsageResult;
 }
+
