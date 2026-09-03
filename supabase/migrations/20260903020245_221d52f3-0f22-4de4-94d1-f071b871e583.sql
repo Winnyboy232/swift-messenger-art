@@ -1,0 +1,14 @@
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_swift_admin(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_set_tier(uuid, text, integer) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_unfreeze(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_spam_immune(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.phone_account_slots(text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.process_freeze_appeals(uuid) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.update_updated_at_column() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.touch_admin_config_updated_at() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.enforce_message_safety() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_spam_report() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_spam_immune(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_swift_admin(uuid) FROM anon;
