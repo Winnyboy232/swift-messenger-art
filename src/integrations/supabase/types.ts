@@ -335,6 +335,54 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount_minor: number
+          confirmed_at: string | null
+          created_at: string
+          credits: number
+          currency: string
+          id: string
+          item_id: string
+          item_type: string
+          months: number
+          provider: string
+          provider_reference: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor: number
+          confirmed_at?: string | null
+          created_at?: string
+          credits?: number
+          currency: string
+          id?: string
+          item_id: string
+          item_type: string
+          months?: number
+          provider: string
+          provider_reference?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number
+          confirmed_at?: string | null
+          created_at?: string
+          credits?: number
+          currency?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          months?: number
+          provider?: string
+          provider_reference?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_credits: number
@@ -604,6 +652,14 @@ export type Database = {
         Returns: boolean
       }
       admin_unfreeze: { Args: { _target: string }; Returns: boolean }
+      confirm_payment_order: {
+        Args: {
+          _order_id: string
+          _provider: string
+          _provider_reference: string
+        }
+        Returns: boolean
+      }
       consume_ai_usage: {
         Args: { _daily_limit: number; _kind: string; _monthly_limit?: number }
         Returns: Json

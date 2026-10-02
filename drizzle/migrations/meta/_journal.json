@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790900822145,
+      "tag": "0000_verified_payment_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790900850226,
+      "tag": "0001_confirm_verified_payments",
+      "breakpoints": true
+    }
+  ]
+}
