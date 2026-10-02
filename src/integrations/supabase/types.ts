@@ -652,6 +652,14 @@ export type Database = {
         Returns: boolean
       }
       admin_unfreeze: { Args: { _target: string }; Returns: boolean }
+      confirm_payment_order: {
+        Args: {
+          _order_id: string
+          _provider: string
+          _provider_reference: string
+        }
+        Returns: boolean
+      }
       consume_ai_usage: {
         Args: { _daily_limit: number; _kind: string; _monthly_limit?: number }
         Returns: Json
